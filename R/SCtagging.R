@@ -633,52 +633,7 @@ statsfigures = function(){
   ggplot2.barplot(data=dt[which(dt$relarea == "SENS"),], xName='relarea', yName="caparea2", position=position_dodge())
   
 }
-agescript = function(){
-  
-  da = get.capturedatacc()
-  da = da[which(as.numeric(da$sampyear) > 2004),]
-  cc2 = da[which(da$sampcc == "2"),]
-  cc2$days =  ymd(cc2$capdate) - ymd(cc2$sampdat) 
-  cyea = c(mean(cc2$days[which(cc2$capcc == "2")])/365.25,
-           mean(cc2$days[which(cc2$capcc == "3")])/365.25,
-           mean(cc2$days[which(cc2$capcc == "4")])/365.25)
-  
-  plot(c(2 ,3, 4), cyea, type = "h", lwd = 5, axes = F,ylim = c(0, 2.5), main = "Released as cc2",ylab = "years", xlab = "Carapace Condition")
-  axis(1, at=c(2 ,3, 4),labels=c("cc2", "cc3", "cc4"), las=2)
-  axis(2, at=c(0 ,1, 2),labels=c("0", "1", "2"), las=2)
-  text(c(2 ,3, 4)+c(.1,-.1,-.1), cyea, label = c(paste("n=", length(which(cc2$capcc == "2")), sep ="" ), paste("n=", length(which(cc2$capcc == "3")), sep ="" ), paste("n=", length(which(cc2$capcc == "4")), sep ="" )), pos = 3, cex = 0.8, col = "red")
-  
-  cc3 = da[which(da$sampcc == "3"),]
-  cc3$days =  ymd(cc3$capdate) - ymd(cc3$sampdat) 
-  cyea = c(mean(cc3$days[which(cc3$capcc == "3")])/365.25,
-           mean(cc3$days[which(cc3$capcc == "4")])/365.25,
-           mean(cc3$days[which(cc3$capcc == "5")])/365.25)
-  plot(c(1 ,2, 3), cyea, type = "h", lwd = 5, axes = F,ylim = c(0, 3.5), main = "Released as cc3",ylab = "years", xlab = "Carapace Condition")
-  axis(1, at=c(1 ,2, 3),labels=c("cc3", "cc4", "cc5"), las=2)
-  axis(2, at=c(0 ,1, 2, 3),labels=c("0", "1", "2", "3"), las=2)
-  text(c(1 ,2, 3)+c(.14,-.1,-.1), cyea, label = c(paste("n=", length(which(cc3$capcc == "3")), sep ="" ), paste("n=", length(which(cc3$capcc == "4")), sep ="" ), paste("n=", length(which(cc3$capcc == "5")), sep ="" )), pos = 3, cex = 0.8, col = "red")
-  
-  
-  cc4 = da[which(da$sampcc == "4"),]
-  cc4$days =  ymd(cc4$capdate) - ymd(cc4$sampdat) 
-  cyea = c(mean(cc4$days[which(cc4$capcc == "4")])/365.25)
-  plot(c(1), cyea, type = "h", lwd = 5, axes = F,ylim = c(0, 3.5), main = "Released as cc4",ylab = "years", xlab = "Carapace Condition")
-  axis(1, at=c(1),labels=c("cc4"), las=2)
-  axis(2, at=c(0 ,1, 2, 3),labels=c("0", "1", "2", "3"), las=2)
-  text(c(1)+c(.14), cyea, label = c(paste("n=", length(which(cc4$capcc == "4")), sep ="" )), pos = 3, cex = 0.8, col = "red")
-  
-  hist(as.numeric(cc3$days[which(cc3$capcc == "3")]/365.25), breaks = 10, cex.main = 1, main = "Captured as CC3", xlab = "years")
-  hist(as.numeric(cc3$days[which(cc3$capcc == "4")]/365.25), breaks = 10, cex.main = 1, main = "Captured as CC4", xlab = "years")
-  
-  hist(as.numeric(cc2$days[which(cc2$capcc == "2")]/365.25), cex.main = 1, main = "Captured as CC2", xlab = "years")
-  hist(as.numeric(cc2$days[which(cc2$capcc == "3")]/365.25), cex.main = 1, main = "Captured as CC3", xlab = "years")
-  hist(as.numeric(cc2$days[which(cc2$capcc == "4")]/365.25), cex.main = 1, main = "Captured as CC4", xlab = "years")
-  
-  hist(as.numeric(cc4$days[which(cc4$capcc == "4")]/365.25), cex.main = 1, main = "Captured as CC4", xlab = "years")
-  hist(as.numeric(cc4$days[which(cc4$capcc == "5")]/365.25), cex.main = 1, main = "Captured as CC5", xlab = "years")
-  
-  
-}
+
 
 capture.history.spa= function(region = "ScotianShelf"){
   mcform = get.releases()
@@ -737,56 +692,7 @@ capture.history.spa= function(region = "ScotianShelf"){
 
 
 
-#' @title  get.capturedatacc
-#' @description  Return  capture data
-#' @import ROracle RMySQL rJava
-#' @return dataframe
-#' @export
-get.capturedatacc = function(){
-  local_port = "3309"
-  
-  SCtunnel = openportSC(local.port = local_port)
-  
-  con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-  rs <- RMySQL::dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-  rs <- RMySQL::dbSendQuery(con, statement = "Select * from 
-                            (SELECT  bio.tag_id, bio.sample_num, bio.cc, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year, capture.carapace_cond, capture.tagcode 
-                            from capture join bio where bio.tag_id  = capture.tag) t1 
-                            JOIN (SELECT trip.trip_id, trip.statsarea, trip.subarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
-                            from trip join sample where sample.trip = trip.trip_id)t2
-                            ON t1.sample_num = t2.sample_id  
-                            ORDER BY captain, trip_id, tag_id, t1.date;")
-  
-  da <- RMySQL::fetch(rs, n = -1)   # extract all rows
-  dbDisconnect(con) 
-  closeportSC(SCtunnel)
-  da = unique(da)
-  da$sample_num = NULL
-  da$trip_id = NULL
-  da$captain = NULL
-  da$Reported = NULL
-  da$sample_id = NULL
-  
-  names(da) = c("PID", "sampcc", "capdate", "caparea","caplat", "caplon", "year", "capcc", "relcode", "area", "subarea", "sampyear", "sampdat", "samplat", "samplon")
-  previd = ""
-  # da = da[order(da$PID),]
-  for(i in 1:nrow(da)){
-    if(da$PID[i] == previd){
-      da$samplat[i] = da$caplat[i-1]
-      da$samplon[i] = da$caplon[i-1]
-      da$sampdat[i] = da$capdat[i-1]
-      da$sampcc[i] = da$capcc[i-1]
-    }
-    previd = da$PID[i] 
-  }
-  
-  
-  
-  
-  
-  return(da)
-  
-}
+
 #' @title  get.capturedata.oracle
 #' @description  Get all tag data view from oracle database 
 #' @import ROracle DBI
@@ -805,137 +711,6 @@ get.capturedata.oracle = function(){
   return(res)
   
 }
-get.capturedata.ens = function(){
-  local_port = "3308"
-  
-  SCtunnel = openportSC(local.port = local_port)
-  
-  con <- dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-  rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-  
-  rs <- dbSendQuery(con, statement = "Select * from 
-                    (SELECT  bio.tag_id, bio.sample_num, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.subarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year 
-                    from capture join bio where bio.tag_id  = capture.tag) t1 
-                    JOIN (SELECT trip.trip_id, trip.statsarea, trip.subarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
-                    from trip join sample where sample.trip = trip.trip_id)t2
-                    ON t1.sample_num = t2.sample_id  
-                    ORDER BY captain, trip_id, tag_id, t1.date;")
-  
-  da <- fetch(rs, n = -1)   # extract all rows
-  dbDisconnect(con) 
-  closeportSC(SCtunnel)
-  da = unique(da)
-  da$sample_num = NULL
-  da$trip_id = NULL
-  da$captain = NULL
-  da$Reported = NULL
-  da$sample_id = NULL
-  
-  names(da) = c("PID", "capdate", "caparea", "csubarea","caplat", "caplon", "year", "area", "subarea", "sampyear", "sampdat", "samplat", "samplon")
-  previd = ""
-  # da = da[order(da$PID),]
-  for(i in 1:nrow(da)){
-    if(da$PID[i] == previd){
-      da$samplat[i] = da$caplat[i-1]
-      da$samplon[i] = da$caplon[i-1]
-      da$sampdat[i] = da$capdat[i-1]
-    }
-    previd = da$PID[i] 
-  }
-  
-  names(da) = c("PID", "capdate", "caparea", "csubarea","caplat", "caplon", "year", "area", "subarea", "sampyear", "sampdat", "rellat", "rellon")
-  
-  
-  
-  return(da)
-  
-}
-get.alldata.ens = function(){
-  local_port = "3308"
-  
-  SCtunnel = openportSC(local.port = local_port)
-  
-  con <- dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-  rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-  
-  rs <- dbSendQuery(con, statement = "Select * from alldata;")
-  
-  da <- fetch(rs, n = -1)   # extract all rows
-  dbDisconnect(con) 
-  closeportSC(SCtunnel)
-  da = unique(da)
-  
-  names(da) = c("PID", "caplat", "caplon","capdate", "caparea", "year","csubarea", "rewarded","reldat","area", "subarea","relyear", "rellat", "rellon", "carapace", "chela", "cc")
-  previd = ""
-  # da = da[order(da$PID),]
-  for(i in 1:nrow(da)){
-    if(da$PID[i] == previd){
-      da$rellat[i] = da$caplat[i-1]
-      da$rellon[i] = da$caplon[i-1]
-      da$reldat[i] = da$capdat[i-1]
-    }
-    previd = da$PID[i] 
-  }
-  
-  return(da)
-  
-}
-
-
-
-#' @title  Generate Rewards 
-#' @description  Open java program that generates reward letters.
-#' @export
-generate.rewards = function(){
-  
-  try(if(!exists("bio.datadirectory"))
-    stop("You must define the bio.datadirectory")
-  )  
-  
-  try(if(!exists("enssnowc.user") | !exists("enssnowc.password"))
-    stop("You must define enssnowc.user and enssnowc.password")
-  )  
-  
-  
-  system(paste("java -jar", system.file("extdata", "TagApp", "taggingApp.jar", package = "SCtagging"), enssnowc.user, enssnowc.password, bio.datadirectory, "reward", sep = " "))
-  
-}
-enter.returns.private = function(){
-  
-  try(if(!exists("ecomod.datadirectory"))
-    stop("You must define the ecomod.datadirectory")
-  )  
-  
-  try(if(!exists("enssnowc.user") | !exists("enssnowc.password"))
-    stop("You must define enssnowc.user and enssnowc.password")
-  )  
-  setwd(ecomod.datadirectory)
-  
-  system(paste("java -jar data/taggingApp.jar", enssnowc.user, enssnowc.password, ecomod.datadirectory, "enter", sep = " "))
-  
-}
-enter.releases = function(){
-  browseURL("http://www.enssnowcrab.com/snowcrabgroup/tagentry.html", browser = getOption("browser"),
-            encodeIfNeeded = FALSE)
-  
-}
-view.stats.private = function(){
-  browseURL("http://www.enssnowcrab.com/snowcrabgroup/tagging.html", browser = getOption("browser"),
-            encodeIfNeeded = FALSE)
-  
-}
-view.stats.public = function(){
-  browseURL("http://www.enssnowcrab.com/tagging.html", browser = getOption("browser"),
-            encodeIfNeeded = FALSE)
-  return(TRUE)
-  
-}
-enter.returns.public = function(){
-  browseURL("http://www.enssnowcrab.com/tagentry.html", browser = getOption("browser"),
-            encodeIfNeeded = FALSE)
-  
-}
-
 
 #' @title  Shortest Paths 
 #' @description  Creates and writes the shortest paths to database
@@ -1173,100 +948,6 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     print("No new paths created.")  
   }
   return(dftowrite)
-}
-#' @title  mirror2esnssite
-#' @description  ESSENTIAL FUNCTION. Must call after any data entry in order for the website to be up to date! 
-#' @import ROracle RMySQL DBI rJava
-#' @return status message in case it was called by webpage
-#' @export
-mirror2esnssite = function(region = "ScotianShelf"){
-  outmess = ""
-  gstring = ""
-  if(region == "Gulf")gstring = "_GULF"
-  drv <- DBI::dbDriver("Oracle")
-  res <- try(con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-             ,silent = TRUE)
-  if(class(res) != "try-error"){
-    resbio <- ROracle::dbSendQuery(con, paste("select * from SCT_BIO", gstring, sep = "")) 
-    resbio <- ROracle::fetch(resbio)
-    ressam <- ROracle::dbSendQuery(con, paste("select * from SCT_SAMPLE", gstring, sep = "")) 
-    ressam <- ROracle::fetch(ressam)
-    restri <- ROracle::dbSendQuery(con, paste("select * from SCT_TRIP", gstring, sep = "")) 
-    restri <- ROracle::fetch(restri)
-    rescap <- ROracle::dbSendQuery(con, paste("select * from SCT_CAPTURE", gstring, sep = "")) 
-    rescap <- ROracle::fetch(rescap)
-    
-    respeo <- ROracle::dbSendQuery(con, paste("select * from SCT_PEOPLE", gstring, sep = "")) 
-    respeo <- ROracle::fetch(respeo)
-    #respat <- ROracle::dbSendQuery(con, paste("select * from SCT_PATHS", gstring, sep = "")) 
-    #respat <- fetch(respat)
-    resall <- get.capturedata.oracle()
-    
-    ROracle::dbDisconnect(con)
-    resall$capdate = as.character(as.Date(resall$capdate))
-    resall$sampdat = as.character(as.Date(resall$sampdat))
-    
-    xx = as.character(as.Date(restri$RELEASE_DATE))
-    xy = matrix(unlist(strsplit(xx, "-")), ncol = 3,  byrow = T)
-    
-    restri$RELEASE_DATE = paste(xy[,3], xy[,2], xy[,1], sep = "/")
-    
-    xx = as.character(as.Date(rescap$CAPTURE_DATE))
-    xx[which(is.na(xx))] = "1111-11-11"
-    xy = matrix(unlist(strsplit(xx, "-")), ncol = 3,  byrow = T)
-    
-    rescap$CAPTURE_DATE = paste(xy[,3], xy[,2], xy[,1], sep = "/")
-    rescap$CAPTURE_DATE[which(rescap$CAPTURE_DATE == "11/11/1111")] = NA
-    
-    
-    restri = restri[, c("TRIP_ID", "TECHNICIAN", "VESSEL", "CFA", "RELEASE_DATE", "YEAR", "STATSAREA", "REPORTED", "CAPTAIN", "SUBAREA")]
-    rescap = rescap[, c("TAG", "CAPTURE_DATE", "PERSON", "PERSON_B", "LAT_DDMM_MM", "LONG_DDMM_MM", "LAT_DD_DDDD", "LONG_DD_DDDD", "FATHOMS", "RELCODE", "COMMENTS", "CAPTAIN", "VESSEL","YEAR", "STATSAREA", "CARAPACE_COND","REWARDED", "SUBAREA")]
-    
-    names(resbio) = c("sample_num", "tag_id", "carapace_w", "chela_h", "cc", "durometer")
-    
-    names(ressam) = c("sample_id", "trip", "Lat_DDMM_MM", "long_DDMM_MM", "Lat_DD_DDDD", "Long_DD_DDDD", "fathoms", "comment")
-    names(restri) = c("trip_id", "technician", "vessel", "cfa", "date", "year", "statsarea", "Reported", "captain", "subarea")
-    names(rescap) = c("tag", "date", "person", "person_B", "Lat_DDMM_MM", "long_DDMM_MM", "Lat_DD_DDDD", "Long_DD_DDDD", "fathoms", "tagcode", "comment", "captain", "vessel", "year", "statsarea", "carapace_cond", "rewarded", "subarea")
-    # names(respat) = c("id", "lon", "lat", "cdat", "dist")
-    names(respeo) = tolower(names(respeo))
-    
-    save(restri, ressam, rescap, respeo, resall, resbio, file = "tagdatabase.RData")
-    outmess = "Oracle tagging database saved to file. "
-  }
-  else{
-    outmess = "Oracle database not saved to file, call again when connected to VPN. "
-  }
-  
-  
-  #local_port = "3307"
-  #SCtunnel = openportSC(local.port = local_port)
-  #if(region == "ScotianShelf")con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-  #if(region == "Gulf")con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_gulf", sep = ""), password = enssnowc.password, dbname = "enssnowc_GulfTag",  port = as.numeric(local_port), host = "localhost")
-  
-  res <- try({
-    if(region == "ScotianShelf")con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = 3306, host = "www.enssnowcrab.com")
-    if(region == "Gulf")con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_gulf", sep = ""), password = enssnowc.password, dbname = "enssnowc_GulfTag", port = 3306, host = "www.enssnowcrab.com")
-  },silent = TRUE)
-  
-  if(class(res) != "try-error"){
-    load("tagdatabase.RData")
-    
-    rs <- RMySQL::dbWriteTable(con, "bio", resbio, row.names = F, overwrite = T, append = FALSE)
-    rs <- RMySQL::dbWriteTable(con, "capture", rescap, row.names = F, overwrite = T, append = FALSE)
-    #  rs <- RMySQL::dbWriteTable(con, "paths", respat, row.names = F, overwrite = T, append = FALSE)
-    rs <- RMySQL::dbWriteTable(con, "sample", ressam, row.names = F, overwrite = T, append = FALSE)
-    rs <- RMySQL::dbWriteTable(con, "trip", restri, row.names = F, overwrite = T, append = FALSE)
-    rs <- RMySQL::dbWriteTable(con, "people", respeo, row.names = F, overwrite = T, append = FALSE)
-    rs <- RMySQL::dbWriteTable(con, "alldata", resall, row.names = F, overwrite = T, append = FALSE)
-    
-    RMySQL::dbDisconnect(con) 
-    #closeportSC(SCtunnel)
-    outmess = paste(outmess, "Database updated on website", sep="")
-  }
-  else{
-    outmess = paste(outmess, "Database not synced to website, call again when not connected to VPN", sep="")
-  }
-  return(outmess)
 }
 
 
@@ -2423,89 +2104,6 @@ recaps.plot = function(){
 }
 
 
-#' @title  get.paths
-#' @description  Return path data
-#' @import ROracle RMySQL
-#' @return dataframe
-#' @export
-get.paths = function(){
-  
-  gstring = ""
-  local_port = "3308"
-  
-  SCtunnel = openportSC(local.port = local_port)
-  
-  con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-  rs <- RMySQL::dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-  rx <- RMySQL::dbSendQuery(con, statement = "Select * from paths;")
-  
-  dx <- RMySQL::fetch(rx, n = -1)   # extract all rows
-  RMySQL::dbDisconnect(con)
-  closeportSC(SCtunnel)
-  # 
-  #dx = dbReadTable(con, "SCT_PATHS", ora.number = T)
-  # drv <- dbDriver("Oracle")
-  # con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-  # 
-  # 
-  # respat <- ROracle::dbSendQuery(con, paste("select * from SCT_PATHS", gstring, " where ID = '",tid ,"'", sep = "")) 
-  # respat <- fetch(respat)
-  # ROracle::dbDisconnect(con)
-  
-  return(dx)
-}
-
-#' @title  openportSC
-#' @description  Open a ssh tunnel for ENS site satabase opperations
-#' @import rJava
-#' @param user Database username
-#' @param password Database password
-#' @param host database server
-#' @param local.port what port to tunnel through
-#' @param remote.port what port to tunnel through
-#' @export
-openportSC = function(user = enssnowc.user, password = enssnowc.password, host = "www.enssnowcrab.com", local.port = NULL, remote.port = "3306" ){
-  #"box5730.bluehost.com"
-  
-  if(is.null(local.port)) local.port = "3308"
-  
-  tunnel = NULL
-  .jinit()
-  
-  .jaddClassPath(dir(system.file("extdata", "ssh", package = "SCtagging"), full.names = T))
-  .jclassPath()
-  
-  tunnel <- .jnew("ssh/Sshtunnel")
-  .jcall(tunnel,, "setvariables" , user, password, host, local.port, remote.port )
-  .jcall(tunnel,, "openTunnel")
-  return(tunnel)
-} 
-#' @title  closeportSC
-#' @description  close a named ssh tunnel for ENS site database opperations
-#' @import rJava 
-#' @export
-closeportSC = function(tunnel){
-  .jcall(tunnel,, "closeTunnel")
-}
-#' @title  gettableSQL
-#' @description  Get site table 
-#' @import ROracle RMySQL DBI rJava
-#' @return dataframe
-#' @export
-gettableSQL = function(table){
-  local_port = "3308"
-  
-  SCtunnel = openportSC(local.port = local_port)
-  
-  con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-  rs <- RMySQL::dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-  rs <- RMySQL::dbSendQuery(con, statement = paste("Select * from ",table, sep=""))
-  da <- RMySQL::fetch(rs, n = -1)   # extract all rows
-  RMySQL::dbDisconnect(con) 
-  closeportSC(SCtunnel)
-  return(da)
-}
-
 #' @title  get.releases
 #' @description  Return capture data
 #' @import ROracle DBI
@@ -2580,27 +2178,7 @@ get.capturedata = function(region = "ScotianShelf"){
   if(region == "Gulf"){
     gstring = "_GULF"
   }
-  # local_port = "3308"
-  # 
-  # SCtunnel = openportSC(local.port = local_port)
-  # 
-  # con <- dbConnect(dbDriver("MySQL"), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-  # rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-  
-  
-  # rs <- dbSendQuery(con, statement = "Select * from 
-  #                     (SELECT  bio.tag_id, bio.sample_num, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year 
-  #                     from capture join bio where bio.tag_id  = capture.tag) t1 
-  #                     JOIN (SELECT trip.trip_id, trip.statsarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
-  #                     from trip join sample where sample.trip = trip.trip_id)t2
-  #                     ON t1.sample_num = t2.sample_id  
-  #                     ORDER BY captain, trip_id, tag_id, t1.date;")
-  drv <- DBI::dbDriver("Oracle")
-  con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-  
-  
-  #con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-  da = NULL
+   da = NULL
   
   
   query = paste("SELECT SCT_BIO", gstring,".TAG_ID,
@@ -2634,12 +2212,9 @@ get.capturedata = function(region = "ScotianShelf"){
   
   resbio <- ROracle::dbSendQuery(con, query) 
   da <-  ROracle::fetch(resbio)
-  #da = RODBC::sqlQuery(con, query )
+ 
   ROracle::dbDisconnect(con)
-  #RODBC::odbcClose(con)
-  # da <- RODBC::fetch(rs, n = -1)   # extract all rows
-  #RODBC::dbDisconnect(con) 
-  # closeportSC(SCtunnel)
+
   da$CAPTURE_DATE = as.Date(da$CAPTURE_DATE)
   da$RELEASE_DATE = as.Date(da$RELEASE_DATE)
   da = unique(da)
@@ -2662,9 +2237,7 @@ get.capturedata = function(region = "ScotianShelf"){
   }
   
   names(da) = c("PID", "capdate", "caparea","caplat", "caplon", "year", "area","relcode", "sampyear", "sampdat", "rellat", "rellon")
-  
-  
-  
+
   return(da)
   
 }

@@ -4,9 +4,13 @@
 \alias{shortestpaths.SC}
 \title{Shortest Paths}
 \usage{
-shortestpaths.SC(raster.path = system.file("extdata", "depthraster2.tif",
-  package = "SCtagging"), neighborhood = 16, type = "random.walk",
-  redo = F, region = "ScotianShelf")
+shortestpaths.SC(
+  raster.path = system.file("extdata", "depthraster2.tif", package = "SCtagging"),
+  neighborhood = 16,
+  type = "random.walk",
+  redo = F,
+  region = "ScotianShelf"
+)
 }
 \arguments{
 \item{neighborhood}{The number of adjacent cell over which to calculate, defaults to 16.}

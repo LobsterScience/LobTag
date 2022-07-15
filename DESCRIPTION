@@ -7,10 +7,9 @@ Author: Brent Cameron
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.2
 Collate: 
     'SCtagging.R'
     'TagWebGUI.r'
     'TagPlot.r'
-    'SCAccoustic.R'
     'SCrewards.R'
