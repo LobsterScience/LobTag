@@ -1,24 +1,24 @@
-\name{SCtagging-package}
-\alias{SCtagging-package}
-\alias{SCtagging}
+\name{LobTag-package}
+\alias{LobTag-package}
+\alias{LobTag}
 \docType{package}
 \title{
-\packageTitle{SCtagging}
+\packageTitle{LobTag}
 }
 \description{
-\packageDescription{SCtagging}
+\packageDescription{LobTag}
 }
 \details{
 
 The DESCRIPTION file:
-\packageDESCRIPTION{SCtagging}
-\packageIndices{SCtagging}
+\packageDESCRIPTION{LobTag}
+\packageIndices{LobTag}
 ~~ An overview of how to use the package, including the most important functions ~~
 }
 \author{
-\packageAuthor{SCtagging}
+\packageAuthor{LobTag}
 
-Maintainer: \packageMaintainer{SCtagging}
+Maintainer: \packageMaintainer{LobTag}
 }
 \references{
 ~~ Literature or other references for background information ~~

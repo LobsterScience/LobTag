@@ -1,4 +1,4 @@
-Package: SCtagging
+Package: LobTag
 Type: Package
 Title: Functions to assist with ENS Snow Crab data management
 Version: 1.0
