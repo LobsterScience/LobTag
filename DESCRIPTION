@@ -1,15 +1,20 @@
 Package: LobTag
 Type: Package
-Title: Functions to assist with ENS Snow Crab data management
+Title: Functions to assist with Lobster Tagging data management
 Version: 1.0
-Date: 2016-06-07
-Author: Brent Cameron
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
+Date: 2022-12-07
+Author: Brent Cameron, Ross McKinnon
+Maintainer: Who to complain to <sean.mckinnon@dfo-mpo.gc.ca>
+Description: All functions for Lobster tagging interface and database
 License: What license is it under?
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
+Encoding: UTF-8
 Collate: 
-    'SCtagging.R'
+    'LobTagging.r'
     'TagWebGUI.r'
     'TagPlot.r'
-    'SCrewards.R'
+    'LobRewards.r'
+    'tempConnect.r'
+    'TagMail.r'
+Imports: 
+    DBI
