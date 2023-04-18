@@ -6,7 +6,7 @@ Date: 2022-12-07
 Author: Brent Cameron, Ross McKinnon
 Maintainer: Who to complain to <sean.mckinnon@dfo-mpo.gc.ca>
 Description: All functions for Lobster tagging interface and database
-License: What license is it under??
+License: What license is it under?
 RoxygenNote: 7.2.1
 Encoding: UTF-8
 Collate: 
