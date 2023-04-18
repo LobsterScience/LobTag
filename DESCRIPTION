@@ -1,7 +1,7 @@
 Package: LobTag
 Type: Package
 Title: Functions to assist with Lobster Tagging data management
-Version: 1.0
+Version: 1.1
 Date: 2022-12-07
 Author: Brent Cameron, Rossco McKinnin
 Maintainer: Who to complain to <sean.mckinnon@dfo-mpo.gc.ca>
