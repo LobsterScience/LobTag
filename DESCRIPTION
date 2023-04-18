@@ -3,7 +3,7 @@ Type: Package
 Title: Functions to assist with Lobster Tagging data management
 Version: 1.0
 Date: 2022-12-07
-Author: Brent Cameron, Rossco McKinnon
+Author: Brent Cameron, Rossco McKinnin
 Maintainer: Who to complain to <sean.mckinnon@dfo-mpo.gc.ca>
 Description: All functions for Lobster tagging interface and database
 License: What license is it under?
