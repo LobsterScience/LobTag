@@ -1,0 +1,477 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <title>Generate Rewards</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+    <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+    <script src="jq/spin/spin.js"></script>
+    <script src="jq/spin/spin.min.js"></script>
+    <script src="jq/hans/handsontable.full.js"></script>
+    <link rel="stylesheet" media="screen" href="jq/hans/handsontable.full.css">
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkrnIkvR2Upv3XHvXIO0gOqrLDZgUiSEE&sensor=false"></script>
+    <style>
+      #datepicker {
+        position: relative;
+        z-index: 10000;
+      }
+
+      #gmap {
+        width: 650px;
+        height: 400px;
+        margin-bottom: 10px;
+      }
+
+      pb {
+        font-family: arial black;
+        font-size: smaller;
+        padding-left: 8px;
+      }
+
+      shead {
+        font-family: arial black;
+      }
+
+      #tagpic {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        width: 250px;
+        height: 80px;
+        background: url(images/ourtags-4.gif) top center no-repeat;
+      }
+
+      #mf {
+        width: 700px;
+        height: 430px;
+        background: url(images/carapacecond.png) top center no-repeat;
+        z-index: 10001;
+        position: fixed;
+        left: inherit;
+        top: 10%;
+      }
+
+      #showmf {
+        display: inline;
+        display: -webkit-inline-box;
+        z-index: 10002;
+      }
+
+      #mslider {
+        width: 200px;
+        margin-left: 15px;
+        margin-top: 5px;
+        position: relative;
+      }
+
+      #fslider {
+        width: 200px;
+        margin-left: 15px;
+        margin-top: 5px;
+        position: relative;
+      }
+
+      #spinner {
+        width: 70px;
+        position: relative;
+      }
+
+      #rcorners {
+        border-radius: 25px;
+        border: 2px solid #000000;
+        padding: 20px;
+        padding-top: 5px;
+      }
+    </style>
+    <script>
+      function checkenter(formname) {
+        loadn()
+        var opts = {
+          lines: 10, // The number of lines to draw
+          length: 8, // The length of each line
+          width: 7, // The line thickness
+          radius: 0, // The radius of the inner circle
+          corners: 1, // Corner roundness (0..1)
+          rotate: 0, // The rotation offset
+          direction: 1, // 1: clockwise, -1: counterclockwise
+          color: '#2576B7', // #rgb or #rrggbb or array of colors
+          speed: 1, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: false, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: '-500', // Top position relative to parent in px
+          left: '200' // Left position relative to parent in px
+        };
+        var target = document.getElementById('animation');
+        var spinner = new Spinner(opts).spin(target);
+
+        var req = ocpu.rpc("process_returns_for_web", {}, function(output) {
+          alert("no errors: " + output)
+          load()
+        });
+        req.fail(function() {
+          alert("R returned an error while adding data: " + req.responseText);
+          load()
+        });
+        return false;
+      }
+
+      function checkenter2(formname) {
+        loadn()
+        var opts = {
+          lines: 10, // The number of lines to draw
+          length: 8, // The length of each line
+          width: 7, // The line thickness
+          radius: 0, // The radius of the inner circle
+          corners: 1, // Corner roundness (0..1)
+          rotate: 0, // The rotation offset
+          direction: 1, // 1: clockwise, -1: counterclockwise
+          color: '#2576B7', // #rgb or #rrggbb or array of colors
+          speed: 1, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: false, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: '-500', // Top position relative to parent in px
+          left: '200' // Left position relative to parent in px
+        };
+        var target = document.getElementById('animation');
+        var spinner = new Spinner(opts).spin(target);
+
+        var req = ocpu.rpc("open_pdf_file", {}, function(output) {
+          alert("no errors: " + output)
+          load()
+
+        });
+        req.fail(function() {
+          alert("R returned an error while adding data: " + req.responseText);
+          load()
+
+        });
+
+        req.always(function(){
+          $("#submit3").removeAttr("disabled")
+          $("#submit4").removeAttr("disabled")
+          $("#submit5").removeAttr("disabled")
+        });
+        return false;
+
+      }
+
+      function checkenter3(formname) {
+        loadn()
+        var opts = {
+          lines: 10, // The number of lines to draw
+          length: 8, // The length of each line
+          width: 7, // The line thickness
+          radius: 0, // The radius of the inner circle
+          corners: 1, // Corner roundness (0..1)
+          rotate: 0, // The rotation offset
+          direction: 1, // 1: clockwise, -1: counterclockwise
+          color: '#2576B7', // #rgb or #rrggbb or array of colors
+          speed: 1, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: false, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: '-500', // Top position relative to parent in px
+          left: '200' // Left position relative to parent in px
+        };
+        var target = document.getElementById('animation');
+        var spinner = new Spinner(opts).spin(target);
+
+        var req = ocpu.rpc("send_single_email", {}, function(output) {
+          alert("no errors: " + output)
+          load()
+        });
+        req.fail(function() {
+          alert("R returned an error while adding data: " + req.responseText);
+          load()
+        });
+
+        req.always(function(){
+          $("#submit3").attr("disabled", "disabled")
+          $("#submit4").attr("disabled", "disabled")
+          $("#submit5").attr("disabled", "disabled")
+        });
+        return false;
+      }
+
+      function checkenter4(formname) {
+        loadn()
+        var opts = {
+          lines: 10, // The number of lines to draw
+          length: 8, // The length of each line
+          width: 7, // The line thickness
+          radius: 0, // The radius of the inner circle
+          corners: 1, // Corner roundness (0..1)
+          rotate: 0, // The rotation offset
+          direction: 1, // 1: clockwise, -1: counterclockwise
+          color: '#2576B7', // #rgb or #rrggbb or array of colors
+          speed: 1, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: false, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: '-500', // Top position relative to parent in px
+          left: '200' // Left position relative to parent in px
+        };
+        var target = document.getElementById('animation');
+        var spinner = new Spinner(opts).spin(target);
+
+        var req = ocpu.rpc("do_not_send_email", {}, function(output) {
+          alert(output)
+          load()
+        });
+        req.fail(function() {
+          alert("R returned an error while adding data: " + req.responseText);
+          load()
+        });
+
+        req.always(function(){
+          $("#submit3").attr("disabled", "disabled")
+          $("#submit4").attr("disabled", "disabled")
+          $("#submit5").attr("disabled", "disabled")
+        });
+        return false;
+      }
+
+      function checkenter5(formname) {
+        loadn()
+        var opts = {
+          lines: 10, // The number of lines to draw
+          length: 8, // The length of each line
+          width: 7, // The line thickness
+          radius: 0, // The radius of the inner circle
+          corners: 1, // Corner roundness (0..1)
+          rotate: 0, // The rotation offset
+          direction: 1, // 1: clockwise, -1: counterclockwise
+          color: '#2576B7', // #rgb or #rrggbb or array of colors
+          speed: 1, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: false, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: '-500', // Top position relative to parent in px
+          left: '200' // Left position relative to parent in px
+        };
+        var target = document.getElementById('animation');
+        var spinner = new Spinner(opts).spin(target);
+
+        var req = ocpu.rpc("fake_function5", {}, function(output) {
+          alert("no errors: " + output)
+          load()
+        });
+        req.fail(function() {
+          alert("R returned an error while adding data: " + req.responseText);
+          load()
+        });
+        return false;
+      }
+
+
+
+      function openWin2() {
+        if ($('#dum2').val() != "") window.open($('#dum2').val(), "mywin", "menubar=0,resizable=0,width=950,height=950")
+      }
+
+      function loads() {
+        $("#prepage").hide();
+        $("#vchart").hide();
+      }
+
+      function loadn() {
+        $("#prepage").show();
+        $("#fo").hide();
+      }
+
+      function load() {
+        $("#prepage").hide();
+        $("#fo").show();
+      }
+    </script>
+    <script>
+      $(document).ready(function() {
+        $("#mf").hide();
+        $("#showmf").mouseover(function() {
+          $("#mf").fadeToggle();
+        }).mouseout(function() {
+          $("#mf").fadeToggle();
+        });
+        $('#dum2').val("");
+        loads();
+        $("#gmap").hide();
+        $("#show").click(function() {
+          $("#gmap").fadeToggle();
+          google.maps.event.trigger(gmap, 'resize');
+        });
+        $("#dum").hide();
+        $("#dum2").hide();
+
+        $("#ali").focusout(function() {
+          $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+        });
+        $("#ali2").focusout(function() {
+          $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + $("#slidermin2").spinner("value") + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+        });
+        $(function() {
+          var spinner = $("#spinner").spinner({
+            min: 0,
+            max: 200,
+            step: 1,
+          });
+          $("#spinner").spinner("value", 'unknown');
+          $('#spinner').on("spinstop", function() {
+            if ($(this).spinner('value') == 0) {
+              $('#spinner').spinner("value", "unknown");
+            }
+          });
+          var date = $("#datepicker").datepicker();
+          $("#slider").spinner({
+            min: 43,
+            max: 47,
+            step: 1,
+            spin: function(event, ui) {
+              $("#amount").val(ui.value + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+            }
+          });
+          $("#slider").spinner("value", 45);
+          $("#slidermin").spinner({
+            min: 00,
+            max: 59,
+            step: 1,
+            spin: function(event, ui) {
+              $("#amount").val($("#slider").spinner("value") + "\xB0" + ui.value + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+            }
+          });
+          $("#slidermin").spinner("value", 30);
+          $("#sliderdmin").spinner({
+            min: 00,
+            max: 99,
+            step: 01,
+            spin: function(event, ui) {
+              $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad(ui.value, 2) + "N");
+            }
+          });
+          $("#sliderdmin").spinner("value", 50);
+          $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + $("#sliderdmin").spinner("value") + "N");
+          $("#slider").on("spinchange", function(event, ui) {
+            var val = this.value,
+              $this = $(this),
+              max = $this.spinner('option', 'max'),
+              min = $this.spinner('option', 'min');
+            if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+            this.value = val > max ? max : val < min ? min : val;
+            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+          });
+          $("#slidermin").on("spinchange", function(event, ui) {
+            var val = this.value,
+              $this = $(this),
+              max = $this.spinner('option', 'max'),
+              min = $this.spinner('option', 'min');
+            if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+            this.value = val > max ? max : val < min ? min : val;
+            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+          });
+          $("#sliderdmin").on("spinchange", function(event, ui) {
+            var val = this.value,
+              $this = $(this),
+              max = $this.spinner('option', 'max'),
+              min = $this.spinner('option', 'min');
+            if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+            this.value = val > max ? max : val < min ? min : val;
+            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+          });
+          $("#sliderx").spinner({
+            min: 56,
+            max: 67,
+            step: 1,
+            spin: function(event, ui) {
+              $("#amount2").val(ui.value + "\xB0" + $("#slidermin2").spinner("value") + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+            }
+          });
+          $("#sliderx").spinner("value", 58);
+          $("#slidermin2").spinner({
+            min: 00,
+            max: 59,
+            step: 1,
+            spin: function(event, ui) {
+              $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + ui.value + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+            }
+          });
+          $("#slidermin2").spinner("value", 30);
+          $("#sliderdmin2").spinner({
+            min: 00,
+            max: 99,
+            step: 1,
+            spin: function(event, ui) {
+              $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + $("#slidermin2").spinner("value") + "." + pad(ui.value, 2) + "W");
+            }
+          });
+          $("#sliderdmin2").spinner("value", 50);
+          $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + $("#slidermin2").spinner("value") + "." + $("#sliderdmin2").spinner("value") + "W");
+          $("#sliderx").on("spinchange", function(event, ui) {
+            var val = this.value,
+              $this = $(this),
+              max = $this.spinner('option', 'max'),
+              min = $this.spinner('option', 'min');
+            if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+            this.value = val > max ? max : val < min ? min : val;
+            $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + $("#slidermin2").spinner("value") + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+          });
+          $("#slidermin2").on("spinchange", function(event, ui) {
+            var val = this.value,
+              $this = $(this),
+              max = $this.spinner('option', 'max'),
+              min = $this.spinner('option', 'min');
+            if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+            this.value = val > max ? max : val < min ? min : val;
+            $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + $("#slidermin2").spinner("value") + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+          });
+          $("#sliderdmin2").on("spinchange", function(event, ui) {
+            var val = this.value,
+              $this = $(this),
+              max = $this.spinner('option', 'max'),
+              min = $this.spinner('option', 'min');
+            if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+            this.value = val > max ? max : val < min ? min : val;
+            $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + $("#slidermin2").spinner("value") + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+          });
+        });
+      });
+    </script>
+  </head>
+  
+  <body>
+      <h3>Rewards Page</h3>
+      <div id="prepage">performing database operations, please wait... <br>
+        <div id="animation" style="padding: 25px;"></div>
+      </div>
+      <form id="fo" name="myForm" action="" method="post" style="visibility: visible; border: solid; padding: 10px; border-radius: 15px;width: 400px;">
+        <div style='clear: left'></div>
+              <div id='buttons'>
+                <input type="button" name="submit" class="f" id="submit" value="Process Returns" onClick="return checkenter(this.form)" style="height:40px; width:140px; color:blue; font-size: 11pt;">
+                <input type="button" name="submit" class="f" id="submit2" value="Show next pdf attachment" onClick="return checkenter2(this.form)" style="height:40px; width:200px; color:blue; font-size: 11pt;">
+              <br>
+              <br>
+                <input type="button" disabled name="submit" class="f" id="submit3" value="send email" onClick="return checkenter3(this.form)" style="height:40px; width:140px; color:LimeGreen; font-size: 11pt;">
+                <input type="button" disabled name="submit" class="f" id="submit4" value="do not send email" onClick="return checkenter4(this.form)" style="height:40px; width:140px; color:red; font-size: 11pt;">
+<!--                 <input type="button" disabled name="submit" class="f" id="submit5" value="submit" onClick="return checkenter5(this.form)" style="height:40px; width:70px; color:blue; font-size: 11pt;"> -->
+            </div>
+      </form>
+  </body>
+</html>
+
