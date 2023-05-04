@@ -1,0 +1,457 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="-1">
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<title>Tag Return</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+<script src="opencpu/jquery-1.10.2.min.js"> </script>
+<script src="opencpu/opencpu-0.4.js"> </script>
+<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+<script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+  <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js">
+    </script>
+<script src="jq/jquery.ui.addresspicker.js"></script>
+<script src="jq/spin/spin.js"></script>
+<script src="jq/spin/spin.min.js"></script>
+<style>
+#datepicker { position:relative; z-index: 10000; }
+#gmap {
+width:650px;
+height:400px;
+  margin-bottom: 10px;
+}
+pb{
+  font-family: arial black;
+}
+py{
+  font-family: arial yellow;
+}
+#tagpic {
+  margin-top:10px;
+  margin-bottom:10px;
+width:250px;
+height:80px;
+background: url(images/ourtags-4.gif) top center no-repeat;
+}
+#mf {
+width:700px;
+height:430px;
+background: url(images/carapacecond.png) top center no-repeat;
+  z-index: 10001;
+position: fixed;
+left: inherit;
+top: 10%;
+}
+#showmf {
+display: inline;
+display: -webkit-inline-box;
+  z-index: 10002;
+}
+#mslider{
+width: 200px;
+  margin-left: 15px;
+  margin-top: 5px;
+position:relative;
+}#fslider{
+width: 200px;
+  margin-left: 15px;
+  margin-top: 5px;
+position:relative;
+}
+#spinner{
+width: 70px;
+position:relative;
+}
+</style>
+
+<SCRIPT>
+
+function checkenter(formname) {
+  $("#prepage").show();
+  $("#fo").hide();
+  var opts = {
+lines: 10, // The number of lines to draw
+length: 8, // The length of each line
+width: 7, // The line thickness
+radius: 0, // The radius of the inner circle
+corners: 1, // Corner roundness (0..1)
+rotate: 0, // The rotation offset
+direction: 1, // 1: clockwise, -1: counterclockwise
+color: '#2576B7', // #rgb or #rrggbb or array of colors
+speed: 1, // Rounds per second
+trail: 60, // Afterglow percentage
+shadow: false, // Whether to render a shadow
+hwaccel: false, // Whether to use hardware acceleration
+className: 'spinner', // The CSS class to assign to the spinner
+zIndex: 2e9, // The z-index (defaults to 2000000000)
+top: '-500', // Top position relative to parent in px
+left: 'auto' // Left position relative to parent in px
+  };
+  
+  var target = document.getElementById('animation');
+  var spinner = new Spinner(opts).spin(target);
+  
+  if(check_fields(formname)){
+    var dta = $('#fo').serialize();
+    var req = ocpu.rpc("delete_capture_tag", {
+      deldata : dta
+    }, function(output){  
+      spinner.stop();
+      
+      
+      $('#dum2').val(output);
+      
+      if(output == "err"){
+        oops();
+      }
+      
+      else{
+        $('#mesbak').val($('#mesbak').val()+output);
+      }
+      
+      $("#prepage").hide();
+      $("#fo").show();
+      $("#rc-choice-y").prop('checked', false);
+      $("#rc-choice-n").prop('checked', true);        
+      $("#nfg").hide();
+      $("#nopos").hide();
+      $("#tagid").val("");
+      
+    });
+    req.fail(function(){
+      alert("R returned an error: " + req.responseText);
+    });
+  }
+  else{
+    $("#prepage").hide();
+    $("#fo").show();
+  }   return false;
+}
+function openWin2(){
+  if($('#dum2').val() != "")
+  window.open($('#dum2').val(),"mywin","menubar=0,resizable=0,width=950,height=950")
+}
+
+function loads(){
+  $("#prepage").hide();
+
+}
+function loadn(){
+  $("#prepage").show();
+  $("#fo").hide();
+}
+function load(){
+  $("#prepage").hide();
+  $("#fo").show();
+}
+function openWin(img){
+  window.open(img,"mywin","menubar=0,resizable=0,width=950,height=950")
+}
+</script>
+<script>
+$(function() {
+  var availableNames = [];
+  var availableTags = [];
+  var ssorg = "";
+  
+
+  $('input[type=radio][name=ssorg]').change(function() {
+    
+      availableTags = [];
+      availableNames = [];
+    if (this.value == 'ss') {
+      ssorg = "ss";
+    }
+    if (this.value == 'g') {
+      ssorg = "g";
+    }
+    var req = ocpu.rpc("autoavailableT",{}, function(output){
+    
+      var obj = JSON.parse(output);
+      for (var j in obj){
+  
+        availableTags[j] = obj[j]["TAG_ID"];
+      }
+    
+    });
+    req.fail(function(){
+      alert("R returned an error: " + req.responseText);
+    });
+
+    var req2 = ocpu.rpc("autoavailableP",{region: ssorg}, function(output2){
+
+      var obj2 = JSON.parse(output2);
+      for (var k in obj2){
+        availableNames[k] = obj2[k]["NAME"];
+      }});
+    req2.fail(function(){
+      alert("R returned an error: " + req2.responseText);
+    });
+    
+    $("#tagid").autocomplete({
+      source: availableTags,
+      autoFocus:true,
+      select: function (event, ui) {  
+    }
+  });
+  
+
+  $("#tagid").focusout(function(){
+    var a = availableTags.indexOf($(this).val());
+    if(a == -1){
+      
+      $("#nfg").show();
+    }
+    else{
+      $("#rc-choice-y").prop('checked', false);
+      $("#rc-choice-n").prop('checked', true);  
+      $("#nfg").hide();
+    }
+  });
+    
+  });
+  
+  
+  $( "#ssorg-y" ).trigger( "click" );
+  
+});
+</script>
+<script>
+$(document).ready(function(){
+
+  $("#rc-choice-n").prop('checked', true);
+  $("#nfg").hide();
+  $("#nopos").hide();
+  $("#mf").hide();
+  $("#showmf")
+  .mouseover(function(){
+    $("#mf").fadeToggle();
+  })
+  .mouseout(function() {
+    $("#mf").fadeToggle();
+  });
+  $('#dum2').val("");
+  loads();
+  $("#gmap").hide();
+  $("#show").click(function(){
+    $("#gmap").fadeToggle();
+    google.maps.event.trigger(gmap, 'resize');
+  });
+  $("#cc").hide();
+  $("#dum").hide();
+  $("#dum2").hide();
+  $("#showcc").hover(function(){
+    $("#cc").fadeToggle();
+  },
+  function(){
+    $("#cc").fadeToggle();
+  });
+  
+});
+$(function() {
+  var spinner = $( "#spinner" ).spinner({
+min: 0,
+max: 200,
+step: 1,
+  });
+  $( "#spinner" ).spinner( "value", 'unknown' );
+  $('#spinner').on("spinstop", function(){
+    if($(this).spinner('value') == 0){
+      $('#spinner').spinner("value", "unknown");
+    }
+  });
+  var date = $( "#datepicker" ).datepicker();
+  
+  
+  $( "#slider" ).spinner({
+min: 43,
+max: 47,
+step: 1,
+spin: function( event, ui ) {
+      $( "#amount" ).val( ui.value  +"\xB0"+ $( "#slidermin" ).spinner( "value" )+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");  
+    }
+  });
+  $( "#slider" ).spinner( "value", 45 );
+  var dlist = ['00','01','02', '03','04','05', '06','07','08', '09', '10','11','12', '13','14','15', '16','17','18', '19', '20','21','22', '23','24','25', '26','27','28', '29', '30',
+  '31','32', '33','34','35', '36','37','38', '39', '40','41','42', '43','44','45', '46','47','48', '49', '50','51','52', '53','54','55', '56','57','58', '59'];
+  
+  $( "#slidermin" ).spinner({
+min: 0,
+max: 59,
+step: 1,
+spin: function( event, ui ) {
+      $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ dlist[ui.value] +"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");
+    }
+  });
+  $( "#slidermin" ).spinner( "value", 30 );
+  $( "#sliderdmin" ).spinner({
+min: 00,
+max: 999,
+step: 01,
+spin: function( event, ui ) {
+      $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin" ).spinner( "value" )]+"."+ pad(ui.value,2) + "N");
+    }
+  });
+  $( "#sliderdmin" ).spinner( "value", 50 );
+  $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin" ).spinner( "value" )]+"."+ $( "#sliderdmin" ).spinner( "value" )+ "N");
+  
+  
+  
+  $( "#slider" ).on( "spinchange", function( event, ui ) {
+    var val = this.value,
+    $this = $(this),
+    max = $this.spinner('option', 'max'),
+    min = $this.spinner('option', 'min');
+    if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+    this.value = val > max ? max : val < min ? min : val;
+    $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin" ).spinner( "value" )]+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");  
+  } );
+  $( "#slidermin" ).on( "spinchange", function( event, ui ) {
+    var val = this.value,
+    $this = $(this),
+    max = $this.spinner('option', 'max'),
+    min = $this.spinner('option', 'min');
+    if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+    this.value = val > max ? max : val < min ? min : val;
+    this.value = dlist[$( "#slidermin" ).spinner( "value" )]
+    $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin" ).spinner( "value" )]+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");  
+  } );
+  $( "#sliderdmin" ).on( "spinchange", function( event, ui ) {
+    var val = this.value,
+    $this = $(this),
+    max = $this.spinner('option', 'max'),
+    min = $this.spinner('option', 'min');
+    if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+    this.value = val > max ? max : val < min ? min : val;
+    $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin" ).spinner( "value" )]+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");  
+  } );
+  $( "#sliderx" ).spinner({
+min: 56,
+max: 67,
+step: 1,
+spin: function( event, ui ) {
+      $( "#amount2" ).val( ui.value  +"\xB0"+ dlist[$( "#slidermin2" ).spinner( "value" )]+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2)+ "W");
+      
+    }
+  });
+  $( "#sliderx" ).spinner( "value", 58 );
+  $( "#slidermin2" ).spinner({
+min: 00,
+max: 59,
+step: 1,
+spin: function( event, ui ) {
+      $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ dlist[ui.value] +"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2)+ "W");
+    }
+  });
+  $( "#slidermin2" ).spinner( "value", 30 );
+  $( "#sliderdmin2" ).spinner({
+min: 00,
+max: 999,
+step: 1,
+spin: function( event, ui ) {
+      $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin2" ).spinner( "value" )]+"."+ pad(ui.value,2) + "W");
+    }
+  });
+  $( "#sliderdmin2" ).spinner( "value", 50 );
+  $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin2" ).spinner( "value" )]+"."+ $( "#sliderdmin2" ).spinner( "value" )+ "W");
+  $( "#sliderx" ).on( "spinchange", function( event, ui ) {
+    var val = this.value,
+    $this = $(this),
+    max = $this.spinner('option', 'max'),
+    min = $this.spinner('option', 'min');
+    if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+    this.value = val > max ? max : val < min ? min : val;
+    $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin2" ).spinner( "value" )]+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2) + "W");
+  } );
+  $( "#slidermin2" ).on( "spinchange", function( event, ui ) {
+    var val = this.value,
+    $this = $(this),
+    max = $this.spinner('option', 'max'),
+    min = $this.spinner('option', 'min');
+    if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+    this.value = val > max ? max : val < min ? min : val;
+    this.value = dlist[$( "#slidermin2" ).spinner( "value" )]   
+    $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin2" ).spinner( "value" )]+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2) + "W");
+  } );
+  $( "#sliderdmin2" ).on( "spinchange", function( event, ui ) {
+    var val = this.value,
+    $this = $(this),
+    max = $this.spinner('option', 'max'),
+    min = $this.spinner('option', 'min');
+    if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+    this.value = val > max ? max : val < min ? min : val;
+    $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ dlist[$( "#slidermin2" ).spinner( "value" )]+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2) + "W");
+  } );
+  function pad(num, size) {
+    var s = num+"";
+    while (s.length < size) s = "0" + s;
+    return s;
+  }  });
+</script>
+</head>
+<body>
+<div id="wrapper">
+<div id="page" style = "width:800px;">
+<div id="contentpane">
+<h2>Delete Tags Form</h2><br/>
+<br/>
+<br/>
+<br/>
+<div id="prepage">Deleting tag records...<br/><br/> <div id="animation"></div></div>
+<form id = "fo" name = "myForm" action="" method="post" style= "visibility: visible; border: solid; padding: 10px; border-radius: 15px;"  >
+
+<div style='clear: left'></div>
+<div style = "margin-left: 90px;">
+<input type="radio" name="ssorg" id="ssorg-y" value="ss" visibility: hidden  />
+</div>
+<br/>
+<pb>What was the Tag id? </pb><br/>
+*<input type="text" name="tid" id="tagid" style="color: blue; font-size: 11pt; width: 80px; margin-left: 83px;"/>
+<div id = "nfg">
+<br/>
+<py>This tag does not yet exist in your release data.
+<br/>Enter your release data at <a href="tagentry2.html" target="_blank">RELEASE ENTRY PAGE</a> </py>
+</div>
+<div style='clear: left'></div>
+<br/>
+<br/>
+<br/>
+<pb>When was this lobster caught</pb>
+<br/>
+<div style = "float:left;"> * </div>
+<div style = "margin-left: 90px;">
+<input type="text" name="date" id="datepicker" style="color: blue; font-size: 11pt; width: 120px;"/>
+</div>
+<br/>
+<label></label> <input id="dum" style="margin-right: 400px; float: right;"/>   <br/>
+<label></label> <input id="dum2" style="margin-right: 400px; float: right;"/>   <br/>
+<div id='buttons'>
+<input type="button" name="submit" class="f" id="submit" value="Submit" onClick = "return checkenter(this.form)" style="height:40px; width:70px; color:blue; font-size: 11pt;">
+</div>
+</form>
+</div>
+      <br class="clearfix" />
+        <div id="sidebar">
+    <textarea rows="10" name="mesbak" id="mesbak">
+MESSAGE CONSOLE
+</textarea>
+
+<br/><br/>
+  </div>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <br class="clearfix" />
+<div id="footer">
+  Atlantic Lobster
+</div>
+</div>
+</div>
+</body>
+</html>
