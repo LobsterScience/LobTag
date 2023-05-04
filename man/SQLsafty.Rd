@@ -10,5 +10,5 @@ SQLsafty(var)
 \item{var}{The variables to modify}
 }
 \description{
-Relapce ' with '' to perserve entries
+Replace ' with '' to preserve entries
 }

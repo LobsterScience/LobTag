@@ -1,0 +1,87 @@
+<html>
+<head>
+    <title>Uploading a file</title>
+    <!-- Include order: first jquery, then opencpu.js, and then your code -->
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+    <script>
+    //init this script when the page has loaded
+    $(document).ready(function(){
+      $("#submitbutton").on("click", function(){
+        //arguments
+        var myheader = $("#header").val() == "true";
+        var myfile = $("#csvfile")[0].files[0];
+        
+        if(!myfile){
+          alert("No file selected.");
+          return;
+        }
+
+        //disable the button during upload
+        $("#submitbutton").attr("disabled", "disabled");
+
+        //perform the request
+        var req = ocpu.rpc("readcsvnew2", {
+          file : myfile
+          /*header : myheader*/
+        }, function(output){
+          $('#mesbak').val($('#mesbak').val() + output);
+         //these links are helpful with debugging. 
+/*          document.getElementById("rdalink").setAttribute("href",session.getLoc() + "R/.val/rda");
+          document.getElementById("jsonlink").setAttribute("href",session.getLoc() + "R/.val/json");
+          document.getElementById("csvlink").setAttribute("href",session.getLoc() + "R/.val/csv");
+          document.getElementById("tablink").setAttribute("href",session.getLoc() + "R/.val/tab");
+          document.getElementById("printlink").setAttribute("href",session.getLoc() + "R/.val/print");
+          document.getElementById("mdlink").setAttribute("href",session.getLoc() + "R/.val/md");*/
+        });
+        
+        //if R returns an error, alert the error message
+        req.fail(function(){
+          alert("Server error: " + req.responseText);
+        });
+        
+        //after request complete, re-enable the button 
+        req.always(function(){
+          $("#submitbutton").removeAttr("disabled")
+        });
+      });       
+    });
+    </script>
+    <style>
+    </style>
+  </head>
+  <body style="">
+    <h1>Uploading a File</h1>
+    
+    <b>File</b> <input type="file" id="csvfile"> 
+    <br>
+    
+<!--     <b>Header</b> <select id="header">
+      <option>true</option>
+      <option>false</option>
+    </select>  -->
+    
+    <br>
+    <button id="submitbutton" type="button">Upload file!</button>
+    <br>
+    <br>
+    <br>
+<!--     <br>
+
+    <p>Export the data frame:</p>
+
+    <ol>
+      <li><a target="_blank" id="rdalink">rdata</a></li>    
+      <li><a target="_blank" id="jsonlink">json</a></li>
+      <li><a target="_blank" id="csvlink">csv</a></li>
+      <li><a target="_blank" id="tablink">tab</a></li>
+      <li><a target="_blank" id="printlink">print</a></li>
+      <li><a target="_blank" id="mdlink">markdown</a></li>
+    </ol> -->
+
+<textarea rows="10" name="mesbak" id="mesbak">
+MESSAGE CONSOLE
+</textarea>
+
+</body>
+</html>

@@ -4,7 +4,7 @@
 \alias{sample_ent}
 \title{sample_ent}
 \usage{
-sample_ent(bdata, sdata)
+sample_ent(bdata, sdata, from_file = FALSE)
 }
 \value{
 message to webpage

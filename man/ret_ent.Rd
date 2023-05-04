@@ -10,5 +10,5 @@ ret_ent(ddata)
 message to webpage
 }
 \description{
-Function that enters returndata entered in the html app
+Function that enters return data entered in the html app
 }
