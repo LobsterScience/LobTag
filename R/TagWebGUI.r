@@ -618,6 +618,7 @@ ret_ent <- function(ddata){
   day = df[2]
   dat = paste(day, mon, year, sep = "/")
 
+  #ret = ""
   if(rc2 == "choice-1")ret = 1
   if(rc2 == "choice-2")ret = 2
   if(rc2 == "choice-3")ret = 3
@@ -996,8 +997,3 @@ delete_lobster_capture = function(tagid = ""){
   my_query = paste('DELETE FROM "LOBSTER"."LBT_CAPTURE" WHERE ',sep = "")
   return(TRUE)
 }
-
-
-
-
-
