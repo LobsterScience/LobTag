@@ -3,6 +3,7 @@
 export(SQLsafty)
 export(absolutely.in.area)
 export(autoaddData)
+export(autoavailableDate)
 export(autoavailableP)
 export(autoavailableT)
 export(collect_emails)
