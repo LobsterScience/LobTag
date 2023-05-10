@@ -191,9 +191,11 @@
         var target = document.getElementById('animation');
         var spinner = new Spinner(opts).spin(target);
 
-        var req = ocpu.rpc("send_single_email", {}, function(output) {
-          alert("no errors: " + output)
+        var req = ocpu.rpc("prep_email_send", {}, function(output) {
+          //alert("no errors: " + output)
           load()
+          $('#mesbak').val($('#mesbak').val() + output);
+          $("#submit5").removeAttr("hidden")
         });
         req.fail(function() {
           alert("R returned an error while adding data: " + req.responseText);
@@ -201,9 +203,12 @@
         });
 
         req.always(function(){
+          //$('#mesbak').val($('#mesbak').val() + output);
+          //$("#submit5").removeAttr("hidden")
           $("#submit3").attr("disabled", "disabled")
           $("#submit4").attr("disabled", "disabled")
-          $("#submit5").attr("disabled", "disabled")
+          //$("#submit5").attr("disabled", "disabled")
+
         });
         return false;
       }
@@ -271,9 +276,10 @@
         var target = document.getElementById('animation');
         var spinner = new Spinner(opts).spin(target);
 
-        var req = ocpu.rpc("fake_function5", {}, function(output) {
+        var req = ocpu.rpc("send_single_email", {}, function(output) {
           alert("no errors: " + output)
           load()
+          document.getElementById("submit5").setAttribute("hidden", "hidden")
         });
         req.fail(function() {
           alert("R returned an error while adding data: " + req.responseText);
@@ -281,8 +287,6 @@
         });
         return false;
       }
-
-
 
       function openWin2() {
         if ($('#dum2').val() != "") window.open($('#dum2').val(), "mywin", "menubar=0,resizable=0,width=950,height=950")
@@ -467,11 +471,16 @@
                 <input type="button" name="submit" class="f" id="submit2" value="Show next pdf attachment" onClick="return checkenter2(this.form)" style="height:40px; width:200px; color:blue; font-size: 11pt;">
               <br>
               <br>
-                <input type="button" disabled name="submit" class="f" id="submit3" value="send email" onClick="return checkenter3(this.form)" style="height:40px; width:140px; color:LimeGreen; font-size: 11pt;">
+                <input type="button" disabled name="submit" class="f" id="submit3" value="prep email" onClick="return checkenter3(this.form)" style="height:40px; width:140px; color:LimeGreen; font-size: 11pt;">
                 <input type="button" disabled name="submit" class="f" id="submit4" value="do not send email" onClick="return checkenter4(this.form)" style="height:40px; width:140px; color:red; font-size: 11pt;">
-<!--                 <input type="button" disabled name="submit" class="f" id="submit5" value="submit" onClick="return checkenter5(this.form)" style="height:40px; width:70px; color:blue; font-size: 11pt;"> -->
+                <input type="button" disabled name="submit" class="f" id="submit5" value="SEND" onClick="return checkenter5(this.form)" hidden="hidden" style="height:40px; width:70px; color:blue; font-size: 11pt;">
             </div>
       </form>
+              <br>
+              <br>
+      <textarea rows="10" name="mesbak" id="mesbak">
+MESSAGE CONSOLE
+</textarea>
   </body>
 </html>
 

@@ -212,18 +212,13 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   #the data behaves differently when saved to file, this script was run and debugged with an intermediate file
   #may need additional testing if temp file to be removed.
   if(from_file == FALSE){
-    
     #tempfile path (this will different every time script is run)
     jsonFilePath = tempfile(pattern = "bdata", tmpdir = tempdir(), fileext = ".json")
     write(bdata, jsonFilePath)
-
   }
   
   if(from_file == FALSE){
-    
-
     sdata_file = tempfile(pattern = "sdata", tmpdir = tempdir(), fileext = ".txt")
-    
     write.table(sdata, file = sdata_file, sep = "")
     
     file_str <- paste(readLines(sdata_file), collapse="\n")
@@ -339,7 +334,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   
   if (exis == 0) {            
     
-    sql = paste('select TRIP_ID from ', database_name, sep = "")
+    sql = paste('SELECT TRIP_ID FROM ', tripdb, sep = "")
     result <- ROracle::dbSendQuery(con, sql) 
     result <- ROracle::fetch(result)
     res = nrow(result) + 300 
@@ -350,7 +345,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   
   reldat = lubridate::dmy(dat)
   
-  tripsql = paste("INSERT INTO ",database_name," (TRIP_ID, TECHNICIAN, AFFILIATION, VESSEL, LFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",affl,"' , '",SQLsafty(ves),"' , '",LFA,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
+  tripsql = paste("INSERT INTO ",tripdb," (TRIP_ID, TECHNICIAN, AFFILIATION, VESSEL, LFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",affl,"' , '",SQLsafty(ves),"' , '",LFA,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
   
   writrip = T
   }
@@ -414,6 +409,11 @@ if(writedata){
         if(is.null(dd$`Claw`[i])) dd$`Claw`[i] = NA
         if(is.na(dd$`Tag Color`[i])) dd$`Tag Color`[i] = 'Blue'  #should default = blue be on front end? (use isna to default to blue)
         #okay, this one is a bit tricky. Tag Num = Tag Num, Carapace = Carapace, Claw = Claw, Shell Cond
+        
+        #if tag colour is blue, make the tag xy...
+        #if(dd$`Tag Color`[i] = 'Blue'{
+        #tag_prefix = 'XY'
+        #}
         sql = paste("INSERT INTO ", biodb, " vALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",'XY',"')", sep = "")
         
         #the commented code below has headers that belong to crab... we've since updated.
@@ -471,7 +471,6 @@ return(out)
 #' @return message to webpage
 #' @export
 ret_ent <- function(ddata){
-  
   tryCatch({
     drv <- DBI::dbDriver("Oracle")
     conn <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
@@ -484,7 +483,6 @@ ret_ent <- function(ddata){
   out = ""
   
   ent = myUrlEncode(ddata)
-  
   ent = unlist(str_split(ent, "&"))
   
   #radio-choice-2 
@@ -514,7 +512,6 @@ ret_ent <- function(ddata){
   sex = ""
   egg = ""
   tag_prefix = ""
-  
   
   for(i in 1:length(ent)){
     if(ent[i] != ""){
@@ -700,7 +697,7 @@ ret_ent <- function(ddata){
   result <- ROracle::dbSendQuery(conn, toda1) 
   
   if(dbGetInfo(result, what = "rowsAffected") == 1){
-    out = paste(out, "New entry added to ", peopdb, " ", gstring, "  with TAG_ID: ", tid, sep = "")
+    out = paste(out, "New entry added to ", captdb, "  with TAG_ID: ", tid, sep = "")
   }
   else{
     out =  paste(out, "\nError: " ,toda1 , "\n" , result, "\n", sep = "")

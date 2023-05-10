@@ -58,12 +58,14 @@ rewards.loop.function = function(){
   perlist = generate.reward.data()
   #markdownfilepath = paste("C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/","knit_rewards.Rmd", sep = "")
   #r_drive_filepath <- "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/App files/"
-  common_files_path <- "C:/bio/"
-  markdownfilepath = paste(common_files_path,"knit_rewards.Rmd", sep = "")
-  
+  #common_files_path <- "C:/bio/"
+  #markdownfilepath = paste(common_files_path,"knit_rewards.Rmd", sep = "")
+  markdownfilepath = tag.markdown.location
+  #k = 1
   for(k in 1:length(perlist)){
-    anon_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only/"
-    email_path = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/inst/extdata/emails_attachments/"
+    #anon_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only/"
+    #email_path = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/inst/extdata/emails_attachments/"
+    email_path = working.emails.location
     render(input = markdownfilepath,
                       output_format = 'pdf_document',
                       output_file = paste(email_path,
@@ -89,7 +91,7 @@ rewards.loop.function = function(){
 
 #' @title  generate.reward.data
 #' @description  Gather Reward data in preparation for document creation with rewards.knit.document() . 
-#' @import ROracle DBI stringi
+#' @import ROracle DBI stringi lubridate
 #' @export
 generate.reward.data = function(region = "ScotianShelf"){
   # Letter text and formatting, be careful when changing text to be aware of return line formatting
@@ -106,8 +108,9 @@ generate.reward.data = function(region = "ScotianShelf"){
   lbiodb = paste("LOBSTER",".","LBT_BIO", sep = "")
   captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
   tripdb = paste("LOBSTER",".","LBT_TRIP", sep = "")
-  sampdb = paste("LOBSTER",".","LBT_TRIP", sep = "")
+  #sampdb = paste("LOBSTER",".","LBT_TRIP", sep = "")
   peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
+  pathdb = paste("LOBSTER",".","LBT_PATH", sep = "")
   
 
   # new lobster code
@@ -169,6 +172,11 @@ generate.reward.data = function(region = "ScotianShelf"){
   #the proper release not the sample release
   #i=1
   
+  ##### only go through tags that have paths
+  #TAG_ID from paths
+  
+  #############
+  
   for(i in 1:nrow(da)){
     if(da$TAG_ID[i] == previd){
       da$RELLAT[i] = da$CAPLAT[i-1]
@@ -181,9 +189,9 @@ generate.reward.data = function(region = "ScotianShelf"){
   
   #Loop thru each person who needs to be rewarded.
   persplit = split(da, da$NAME)
-  #i = 1
+  #i = 2
   for(i in 1:length(persplit)){
-    if(i < 3000){ #Test toggle so full report isnt generated while testing ex change 3000 to 3
+    if(i < 5){ #Test toggle so full report isnt generated while testing ex change 3000 to 3
       per = list()
       per$data = persplit[[i]]
       per$name = per$data$NAME[1]
@@ -343,7 +351,6 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
   for(i in 1:length(tx)){
     collist = collist[sample.int(7, 7)]
     curt = tx[[i]]
-    #not doing a path.
     path = get.pathdata.tid(tid = curt$TAG_ID[1])
     path = path[order(as.numeric(path$CID), as.numeric(path$POS)),]
     path$LON = as.numeric(path$LON)
@@ -453,8 +460,12 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     
     #rasters for plot backgrounds
     #Git hub dosnt allow large files user will need to have these stored charts folder
-    l1 = brick(file.path('c:', 'bio', '801_LL_WGS84.tif'))
-    l2 = brick(file.path('c:', 'bio', 'atl_merged.tif'))
+    #C:\bio.data\bio.lobster\data\tagging
+    #l1 = brick(file.path('c:', 'bio', '801_LL_WGS84.tif'))
+    #l2 = brick(file.path('c:', 'bio', 'atl_merged.tif'))
+    
+    l1 = brick(file.path('c:', 'bio.data', 'bio.lobster', 'data', 'tagging', '801_LL_WGS84.tif'))
+    l2 = brick(file.path('c:', 'bio.data', 'bio.lobster', 'data', 'tagging', 'atl_merged.tif'))
     
     #Expand region
     xmin = xmin - ylen/2  
@@ -508,10 +519,32 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     
     #it doesn't make sense to have if-anon here, as every map will have to have an anon
     #version. Best to loop through twice
-    if(keep_anon == TRUE){
-      tempname = name
-      name = paste("Tag: ",reldata$TAG_ID,sep= "")
-    }
+    # if(keep_anon == TRUE){
+    #   tempname = name
+    #   name = paste("Tag: ",reldata$TAG_ID,sep= "")
+    # }
+    
+    # k = 1 working directory
+    # k = 2 saved to r drive
+    # k = 3 anonymous r drive
+    for(k in 1:3){
+      if(k == 1){
+        map_path = working.maps.location
+        savename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = "")
+        outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+      } else if(k == 2) {
+        map_path = save.maps.location
+        savename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = "")
+      } else if(k == 3) {
+        name = paste("Tag: ",reldata$TAG_ID,sep= "")
+        map_path = anon.maps.location
+        savename = paste(gsub(" ", "", reldata$TAG_ID)," ",reldata$CAPTURE_DATE,"-", i, ".pdf", sep = "")
+      }
+      # print(k)
+      # print(name)
+      # print(map_path)
+      # print(savename)
+    #}
     
     mp = ggRGB(l1, r=1, g=2, b=3, maxpixels = 800000, ext = e, ggObj = T)+
       ggtitle(paste(name, i, sep = "-")) + xlab("Longitude") + ylab("Latitude")+
@@ -535,7 +568,7 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
       for(l in unique(pl$CID)){
         seg = pl[which(pl$CID == l),]
         mp = mp+geom_path(data=seg, aes(x = as.numeric(LON), y = as.numeric(LAT)),
-                          arrow = arrow(length = unit(0.2, "cm")), colour = 'red', alpha = 0.85, size = 1.7)
+                          arrow = arrow(length = unit(0.2, "cm")), colour = 'red', alpha = 0.75, size = 1.7)
       }
     }
     # Randomized the label colors, make each plot look a bit more unique
@@ -594,15 +627,19 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     #tempath is the working copy for now
     #norm_path will have tag data and name
     #anon_path will have tag data only
-    temppath = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/inst/extdata/maps"
-    norm_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags and Names"
-    anon_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only"
-    ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = temppath, plot = g3, width = 11, height = 10)
-    ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = norm_path, plot = g3, width = 11, height = 10)
-    ggsave(filename = paste(gsub(" ", "", reldata$TAG_ID)," ",reldata$CAPTURE_DATE,"-", i, ".pdf", sep = ""), path = anon_path, plot = g3, width = 11, height = 10)
+    
+    #temppath = "C:/bio/LobTag/temp_maps"
+    #norm_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags and Names"
+    #anon_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only"
+    # ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = temppath, plot = g3, width = 11, height = 10)
+    # ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = norm_path, plot = g3, width = 11, height = 10)
+    # ggsave(filename = paste(gsub(" ", "", reldata$TAG_ID)," ",reldata$CAPTURE_DATE,"-", i, ".pdf", sep = ""), path = anon_path, plot = g3, width = 11, height = 10)
     #ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = fn, plot = mp, width = 11, height = 10)
+    ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
     #list of maps locations on disk
-    outlist = c(outlist, paste(temppath, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+    #if(k == 1) {outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))}
+    }
+    #outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
   }
   return(outlist)
 }
@@ -649,12 +686,13 @@ rewards.letter.fill = function(){
   It was unclear whether you released or retained the tagged lobster. In the future please include this data along with the other relevant data if possible. Additional knowledge will be gained by tracking subsequent recaptures of individual lobster over time. </PARAGRAPH unknownrel>
     <PARAGRAPH final>  
     \\newline  
-  I have included a one page information sheet on our tagging program. On the reverse side of this sheet is a form which can easily be used to record all required information on any tagged lobster you may catch in the future. This entire form can be mailed to DFO Science at the end of the lobster season. </PARAGRAPH final>
+  I have included a one page information sheet on our tagging program. On the reverse side of this sheet is a form which can easily be used to record all required information on any tagged lobster you may catch in the future. This entire form can be sent to DFO Science at the end of the lobster season. </PARAGRAPH final>
     <PARAGRAPH end> 
     \\newline  
   Thanks for your help.  
   \\newline  
-  \\newline  
+  \\newline
+  If you are interested in participating in tagging lobsters at the close of the commercial season in your area, please send an email to lobtags@gmail.com with your name, contact information and home port.
   \\newline  
   Ben Zisserson
   \\newline

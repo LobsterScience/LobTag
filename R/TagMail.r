@@ -17,9 +17,11 @@ setup_gmailr <- function(){
 latest_pdf_file <- function(){
   #my_pdfs <- "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/inst/extdata/emails_attachments"
   r_drive_email_dir <- "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/email attachments"
+  r_drive_email_dir <- "C:/bio/LobTag/temp_files/emails_attachments"
   my_pdfs <- paste(r_drive_email_dir, sep = "")
   file_list <- list.files(path=my_pdfs)
-  return(paste0(my_pdfs,"/",file_list[1]))
+  out <- paste0(my_pdfs,"/",file_list[1])
+  return(out)
 }
 
 #' @title  delete_latest_file
@@ -159,4 +161,38 @@ open_pdf_file <- function(){
   system(paste0('open "', latest_pdf_file(), '"'))
   # out = paste("file opened succesfully")
   # return(out)
+}
+
+#' @title  prep_email_send
+#' @description  preps and returns info about the email that's about to be sent.
+#' @export
+prep_email_send <- function(){
+  #we will collect all the info here and then we'll pass it along to the send single email function to keep things streamlined
+  #falls apart if there are no files there.
+  next_fisher_attachment <- latest_pdf_file()
+  p2 <- tools::file_path_sans_ext(next_fisher_attachment)
+  #r_drive_email_dir <- "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/email attachments/"
+  r_drive_email_dir <- "C:/bio/LobTag/temp_files/emails_attachments/"
+  x <- nchar(r_drive_email_dir)
+  
+  #this is the name we will search for
+  fisher_name = substr(p2, start = x+1, stop = nchar(p2))
+  
+  drv <- DBI::dbDriver("Oracle")
+  con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
+  
+  peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
+  my_sql_qry = paste("SELECT EMAIL FROM ", peopdb," WHERE NAME = '", fisher_name, "'", sep = "" )
+  
+  result <- ROracle::dbSendQuery(con, my_sql_qry)
+  result <- ROracle::fetch(result)
+  ROracle::dbDisconnect(con)
+  
+  fisher_email <- result[[1]]
+  
+  #send email to 'fisher name' @ 'the fisher email'?
+  
+  email_info <- paste("send email to ", fisher_name, " at email: ", fisher_email)
+  
+  return(email_info)
 }
