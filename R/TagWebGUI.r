@@ -11,23 +11,55 @@ upload_from_file3 <- function(myfile){
   #initilize user message
   out = ""
   
-  #this was left over from a debug, just gonna leave it even though it's a bit redundant
+  #data read from CSV, multiple steps for debugging
   my_data = read.csv(myfile)
   my_new_Data <- my_data
+  test_data  <- my_data
   
+  #format really shouldn't change, but this will help you drop unused columns in case
+  #you want to batch upload data from a spreadsheet that isn't the template
+  
+  #drop_columns <- c("Comments", "lat.dd.dd", "lon.dd.dd", "date2", "Lat", "Lon", "Sampler.3", "Claw.lost.in.trap")
+  #after_dropped_columns = test_data[,!(names(test_data) %in% drop_columns)]
+  #test_data = after_dropped_columns
+  
+  #data file doesn't hold any calculations.
+  #decimal degrees and degrees minutes formatting done here
+  test_data$latddmm.mm = test_data$Lat.Degrees * 100 + test_data$Lat.Minutes
+  test_data$londdmm.mm = test_data$Lon.Degrees * 100 + test_data$Lon.Minutes
+  
+  test_data$latdd.dd = test_data$Lat.Degrees + test_data$Lat.Minutes / 60
+  test_data$londd.dd = test_data$Lon.Degrees + test_data$Lon.Minutes / 60
+  
+  #date column isn't 100% necessary but it's a good indication if things are going wrong
+  test_data$Date = paste(test_data$Day, test_data$Month, test_data$Year, sep = "/")
+  
+  my_new_Data <- test_data
+
   #removed lat and lon columns (names has to be the same width as data)
-  all_names_new = c("Vessel", "Port", "Captain",	"LFA",	"Affiliation",	"Sampler",	"Sampler 2",	"Sampler 3", "Tag Prefix",	"Tag Num",	"Tag Color",	"Carapace Length",	"Sex",	"Shell",	"Claw",	"V-Notch",	"Claw lost in trap",	"Day",	"Month", "Year",	"Date",	"Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes",	"Comments",	"latdd.dd",	"londd.dd", "date2")
+  #I've re-arranged the lat/lon calculations above so the order is only
+  #correct for the FSRS list here.
   
-  names(my_new_Data) = all_names_new
+  #all_names_new = c("Vessel", "Port", "Captain",	"LFA",	"Affiliation",	"Sampler",	"Sampler 2",	"Sampler 3", "Tag Prefix",	"Tag Num",	"Tag Color",	"Carapace Length",	"Sex",	"Shell",	"Claw",	"V-Notch",	"Claw lost in trap",	"Day",	"Month", "Year",	"Date",	"Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes",	"Comments",	"latdd.dd",	"londd.dd", "date2")
+  #all_names_new2 = c("Vessel", "Captain", "Port", "LFA", "Sampler", "Sampler 2", "Affiliation", "Day",	"Month", "Year", "Tag Prefix",	"Tag Color", "Tag Num",	"Carapace Length",	"Sex",	"Shell", "Claw", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes")
+  all_names_new_test = c("Vessel", "Captain", "Port", "LFA", "Sampler", "Sampler 2", "Affiliation", "Day",	"Month", "Year", "Tag Prefix",	"Tag Color", "Tag Num",	"Carapace Length",	"Sex",	"Shell", "Claw", "V-Notch", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes", "latddmm.mm", "londdmm.mm", "latdd.dd", "londd.dd", "Date")
+  #all_names_FSRS = c("Vessel", "Port", "Captain", "LFA", "Affiliation", "Sampler", "Sampler 2", "Tag Prefix","Tag Num",	"Tag Color", 	"Carapace Length",	"Sex",	"Shell", "Claw","V-Notch", "Day",	"Month", "Year","Date", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes", "latddmm.mm", "londdmm.mm", "latdd.dd", "londd.dd")
+  
+  #old df named columns
+  #names(my_new_Data) = all_names_new
+  #names(my_new_Data) = all_names_new2
+  
+  #new template data
+  names(my_new_Data) = all_names_new_test
+  
+  #all of the data should be in each upload
+  #bdata and sdata can be mined if format is correct.
   bdata_keep = c("Tag Num","Tag Color","Carapace Length","Sex","Shell","Claw","V-Notch")
   
-  #do an error check in here, data should be in a certain format.
   #other error checks we could do?
-  #lat/lon outside of NS LFAs
-  #could check that LFA matches the LAT/LON too with the ISIN function...
   
   #these lists are to catch errors. Sex must be 1-3 (not optional so no NA)
-  #shell is optional but if entered must be 1-6, same with claw and v-noth except 1-3 and yes/no respectively
+  #shell is optional but if entered must be 1-6, same with claw and v-notch except 1-3 and yes/no respectively
   sex_values <- c(1,2,3)
   shell_values <- c(NA, 1:6)
   claw_values <- c(NA,1,2,3)
@@ -86,10 +118,18 @@ upload_from_file3 <- function(myfile){
   #do data manipulation after error checking
   #fill in all missing tag colours/prefixes based on affiliation: DFO/CBFH is Blue (XY), SWLSS is RED (SWLSS)
   #doesn't overwrite existing tag colours or prefixes
+  #check out functions tag_color_filler and tag_prefix_filler to add new affiliations and colours
   my_new_Data[(is.na(my_new_Data$'Tag Color')),]$'Tag Color' <- sapply(my_new_Data[(is.na(my_new_Data$'Tag Color')),]$Affiliation,tag_color_filler)
   my_new_Data[(is.na(my_new_Data$'Tag Prefix')),]$'Tag Prefix' <- sapply(my_new_Data[(is.na(my_new_Data$'Tag Prefix')),]$Affiliation,tag_prefix_filler)
   
+  
+  #test_data$latdd.dd <- with(my_new_Data, 'Lat Degrees' * 100)
+  #test_data = my_new_Data
+  #as.numeric(test_data['Lat Degrees'])
+
+  
   #create pipe that groups excel
+  #since we are no longer importing latdd.dd and londd.dd these have to be calculated and added to the dataframe
   new_excel_df <- my_new_Data %>%
     group_by(Date, latdd.dd, londd.dd) %>%
     mutate(id = cur_group_id())
@@ -139,6 +179,7 @@ upload_from_file3 <- function(myfile){
   # }
   
   ####################################################################################
+  #x = 1
   for(x in 1:max(new_excel_df$id)){
     #look at specific group, this will be looped
     newdf2 <- new_excel_df  %>% filter(id == x)
@@ -147,6 +188,16 @@ upload_from_file3 <- function(myfile){
     new_df3 <- as.data.frame(newdf2)
     bdata_df = new_df3[bdata_keep]
 
+    #sdata_list is ultimately what is passed through to sample_ent
+    #because it's passed as a list and sample ent removed things based on position in the list
+    #if you add or removed any elements here you MUST change the position in sample ent as well
+    #positions
+    keener_variables = c("Vessel", "Port","Captain", "LFA",
+                         "Affiliation", "Sampler", "Date",
+                         "Lat Degrees", "Lon Degrees", "Day",
+                         "Month", "Year", "latdd.dd", "londd.dd")
+    keener_positions = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    
     sdata_list = c(new_df3["Vessel"][1,1],
                    new_df3["Port"][1,1],
                    new_df3["Captain"][1,1],
@@ -156,14 +207,16 @@ upload_from_file3 <- function(myfile){
                    new_df3["Date"][1,1],
                    new_df3["Lat Degrees"][1,1] * 100 + new_df3["Lat Minutes"][1,1], #conpos function does the same thing but it's quicker here
                    new_df3["Lon Degrees"][1,1] * 100 + new_df3["Lon Minutes"][1,1],
-                   new_df3["Comments"][1,1],
+                   #new_df3["Comments"][1,1], #no comments in new upload template
                    new_df3["Day"][1,1],
                    new_df3["Month"][1,1],
                    new_df3["Year"][1,1],
                    new_df3["latdd.dd"][1,1],
-                   new_df3["londd.dd"][1,1]
+                   new_df3["londd.dd"][1,1],
+                   new_df3["Sampler 2"][1,1],
+                   new_df3["Tag Prefix"][1,1]
     )
-    #the print is for debug, but sample_ent loads all data into oracle
+    #the first print is for debug, but sample_ent loads all data into oracle
     print(paste(x,max(new_excel_df$id),sep = " of "))
     out = paste(out, sample_ent(bdata = bdata_df, sdata = sdata_list, from_file = TRUE), sep = " ")
   }
@@ -288,22 +341,33 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     dat = paste(day, mon, year, sep = "/")
     
   } else{
-    dat = sdata[7]
-    sam = sdata[6]
-    ves = sdata[1]
-    LFA = sdata[4]
-    capt = sdata[3]
+    dat = sdata[7]     #date, leading indicator of good data (written over later)
+    sam = sdata[6]     #technician
+    sam2 = sdata[15]    #2nd technician
+    ves = sdata[1]     #vessel
+    LFA = sdata[4]     #LFA
+    capt = sdata[3]    #captain
     dep = ""
-    com = sdata[10]
-    lat = sdata[8]
-    lon = sdata[9]
-    affl = sdata[5]
-    day = sdata[11]
-    mon = sdata[12]
-    year = sdata[13]
-    rlat = sdata[14]
-    rlon = as.numeric(sdata[15]) * -1
+    #com = sdata[10]    #comments have been removed in new upload template
+    lat = sdata[8]     #lat
+    lon = sdata[9]     #lon
+    affl = sdata[5]    #affiliation
+    #day = sdata[11]    #day
+    day = sdata[10]    #new template day
+    #mon = sdata[12]    #month
+    mon = sdata[11]    #new template month
+    #year = sdata[13]   #year
+    year = sdata[12]   #new template year
+    #rlat = sdata[14]
+    rlat = sdata[13]
+    #rlon = as.numeric(sdata[15]) * -1
+    rlon = as.numeric(sdata[14]) * -1
+    tag_prefix = sdata[16]
+    #tag prefix will be important when there are multiple tagging programs
+    #in this database. All oracle tables with a tag (TAGID) should also
+    #have tag prefix to help differentiate programs down the line
     
+    #dat called twice, keeping sdata dat as a leading indicator in error checking
     dat = paste(day, mon, year, sep = "/")
   }
   
@@ -333,7 +397,6 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   }
   
   if (exis == 0) {            
-    
     sql = paste('SELECT TRIP_ID FROM ', tripdb, sep = "")
     result <- ROracle::dbSendQuery(con, sql) 
     result <- ROracle::fetch(result)
@@ -342,17 +405,20 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     #LFAs to fill both stat and sub areas for now.
     sta = LFA
     suba = LFA
-  
-  reldat = lubridate::dmy(dat)
-  
-  tripsql = paste("INSERT INTO ",tripdb," (TRIP_ID, TECHNICIAN, AFFILIATION, VESSEL, LFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",affl,"' , '",SQLsafty(ves),"' , '",LFA,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
-  
-  writrip = T
+    
+    reldat = lubridate::dmy(dat)
+    
+    #newly added second technician for release data
+    tripsql = paste("INSERT INTO ",tripdb," (TRIP_ID, TECHNICIAN, TECHNICIAN_B, AFFILIATION, VESSEL, LFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '", sam2,"' , '",affl,"' , '",SQLsafty(ves),"' , '",LFA,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
+    
+    writrip = T
   }
 
+#does this sample section exist yet?
+#check trip id with LAT/LON
 sql = paste("SELECT SAMPLE_ID FROM ",sampdb, " WHERE TRIP = '",res,"' AND LAT_DD_DDDD = '",rlat,"' AND LONG_DD_DDDD = '",rlon,"'", sep = "")
 
-result <- ROracle::dbSendQuery(con, sql) 
+result <- ROracle::dbSendQuery(con, sql)
 result <- ROracle::fetch(result)
 res2 = nrow(result) 
 
@@ -366,13 +432,19 @@ if (res2 == 0) {
   result <- ROracle::fetch(result)
   samp = as.character(nrow(result) + 3500) 
   
-  sampsql = paste("INSERT INTO ", sampdb, " VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",SQLsafty(com),"')", sep = "")
+  #no comments in the new template, defaulting to say NA
+  #it's the last field in sampdb, so if it ever changes just change 'NA' to the variable
+  #this is where the dep (depth) variable in fathoms goes, this is currently stored as a string with zero length
+  #sampsql = paste("INSERT INTO ", sampdb, " VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",SQLsafty(com),"')", sep = "")
+  sampsql = paste("INSERT INTO ", sampdb, " VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",'NA',"')", sep = "")
+  
   wrisamp = TRUE
 }
 
 if(from_file == TRUE){
   dd = bdata
 } else {
+  #create a dataframe, the headers are included and the data is passed as a json
   dd = as.data.frame(jsonlite::fromJSON(jsonFilePath)[2:nrow(jsonlite::fromJSON(jsonFilePath)),])
   names(dd) = jsonlite::fromJSON(jsonFilePath)[1,]
   
@@ -380,13 +452,14 @@ if(from_file == TRUE){
   unlink(jsonFilePath)
 }
 
-
+#this is legacy code but still necessary in case anyone uses the webui to input a few tags at a time instead of batch uploading
+#duplicate tags from bath upload will be flagged in upload_from_file3
 #this for loop will check if any of the Tag Numbers that you are inputting have already been entered. If they have it will reject all the entries and report a list of repeat tags.
 writedata = TRUE
+#i = 1
 for(i in 1:nrow(dd)){
   if(i > 0){
     if(!is.na(dd$`Tag Num`[i])){
-      
       biodb = paste("LOBSTER",".","LBT_BIO", sep="")
       sql = paste("SELECT TAG_ID FROM ", biodb, " where TAG_ID = '", dd$`Tag Num`[i],"'", sep = "")
       
@@ -403,6 +476,7 @@ for(i in 1:nrow(dd)){
 
 #if you get into this if statement in means the tag numbers are novel.
 if(writedata){
+  #i = 1
   for(i in 1:nrow(dd)){
     if(i > 0){
       if(!is.na(dd$`Tag Num`[i])){
@@ -414,9 +488,13 @@ if(writedata){
         #if(dd$`Tag Color`[i] = 'Blue'{
         #tag_prefix = 'XY'
         #}
-        sql = paste("INSERT INTO ", biodb, " vALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",'XY',"')", sep = "")
         
-        #the commented code below has headers that belong to crab... we've since updated.
+        # *********** this inserts 'XY' into the BIO table regardless of affiliation
+        #sql = paste("INSERT INTO ", biodb, " vALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",'XY',"')", sep = "")
+        
+        #updated to include tag prefix
+        sql = paste("INSERT INTO ", biodb, " VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",tag_prefix,"')", sep = "")
+        
         result <- ROracle::dbSendQuery(con, sql) 
 
         if(dbGetInfo(result, what = "rowsAffected") > 0){
@@ -433,18 +511,22 @@ if(writedata){
   
   if(wrisamp){
     
+    #sampsql is an action query, we are looking to update lbt_samp
     rs = ROracle::dbSendQuery(con, sampsql) 
     
+    #update successful
     if(dbGetInfo(rs, what = "rowsAffected") == 1){
       out = paste(out,"\nSample from trip ",res, " with pos ",lat, " " ,lon, " successfully added", sep = "")
     }
     else{
-      out =  paste(out, "\nError: row 264: " ,sampsql , "\n" , rs, "\n", sep = "")
+      #update unsuccessful, the rs now holds the error
+      out =  paste(out, "\nError:  " ,sampsql , "\n" , rs, "\n", sep = "")
       return(out)
       die()
     }
   }
   if(writrip){
+    #send update to lbt_trip
     result2 <- ROracle::dbSendQuery(con, tripsql) 
     
     if(dbGetInfo(result2, what = "rowsAffected") == 1){

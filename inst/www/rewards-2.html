@@ -195,6 +195,7 @@
           //alert("no errors: " + output)
           load()
           $('#mesbak').val($('#mesbak').val() + output);
+          $("#submit4").attr("disabled", "disabled")
           $("#submit5").removeAttr("hidden")
         });
         req.fail(function() {
@@ -276,9 +277,11 @@
         var target = document.getElementById('animation');
         var spinner = new Spinner(opts).spin(target);
 
-        var req = ocpu.rpc("send_single_email", {}, function(output) {
-          alert("no errors: " + output)
+        var req = ocpu.rpc("setup_and_send", {}, function(output) {
+          //alert("no errors: " + output)
+          //alert("message sent")
           load()
+          $('#mesbak').val($('#mesbak').val() + output);
           document.getElementById("submit5").setAttribute("hidden", "hidden")
         });
         req.fail(function() {

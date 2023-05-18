@@ -52,8 +52,8 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     previd = ""
     if(nrow(x) == 0)message("No new paths to create!")
     else{
-      #i = 18
-      #for(i in 19:20){
+      #i = 21
+      #for(i in 1:20){
       for(i in 1:nrow(x)){
         print(i) # for testing
         if(x$PID[i] == previd){
@@ -70,7 +70,7 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
           AtoB = rbind(start, end)
         }
         else{
-          print("line 70")
+          #print("line 70")
           AtoB = shortestPath(trans, start, end, output="SpatialLines")
         }
         cor = data.frame(coordinates(AtoB))
@@ -108,8 +108,8 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
         dftowrite = rbind(dftowrite, cbind(x$PID[i],paste(cor[,1], collapse = ","), paste(cor[,2], collapse = ","), as.character(x$capdat[i]), leng$length))
       }
     }
-  }
   
+    }
   else{
     count  = 1
     previd = ""
@@ -347,14 +347,21 @@ get.capturedata = function(region = "ScotianShelf"){
 #' @title readcsvnew2
 #' @import readxl dplyr
 #' @export
-readcsvnew2 <- function (file, ...){
+readcsvnew2 <- function(file, ...){
   
   #make sure file is an excel file
   if (!grepl(".xlsx$", file)) {
     stop("Uploaded file must be a .xlsx file!")
   }
   
+  #test the file
+  #this is where the files lives
+  #file = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Lobster Tagging Data Entry Upload Template.xlsx"
+  #file = "C:/Users/mckinnonsea/Desktop/Lobster Tagging Data Entry Upload Template.xlsx"
+  #file = "C:/Users/mckinnonsea/Desktop/2022 FSRS copy for upload.xlsx"
+  file = "C:/Users/mckinnonsea/Desktop/FSRS in template upload format.xlsx"
   #there is a lot of reading/writing from temp files here, can be streamlined.
+  
   my_data <- read_excel(file)
   tempdata <- paste0(tempdir(),"\\data.Rda")
   
@@ -798,8 +805,7 @@ degmin2decdeg = function(ddmmss.ss){
   decmin = as.numeric(min) + sec/60
   decdeg = as.numeric(deg) + decmin/60
   if(neg) decdeg = decdeg*-1
-  return(decdeg)  
-  
+  return(decdeg)
 }
 
 #' @title  get.pathdata.tid
@@ -816,23 +822,17 @@ get.pathdata.tid = function(region = "ScotianShelf", tid = ""){
   drv <- DBI::dbDriver("Oracle")
   con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
   
-  #con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   da = NULL
   
   pathsdb = paste("LOBSTER",".","LBT_PATHS", sep ="")
-  #tid = "2673"
   
   #new lobster code
   query = paste("SELECT * FROM ", pathsdb , " where ", pathsdb, ".TID = '", tid, "'", sep = "")
-  #old crab code
-  #query = paste("SELECT * FROM SCT_PATHS", gstring, " where SCT_PATHS", gstring,".TID = '", tid, "'", sep = "")
   
   resbio <- ROracle::dbSendQuery(con, query) 
   da <- ROracle::fetch(resbio)
   
-  #da = RODBC::sqlQuery(con, query )
   da = da[order(da$CID, da$POS),]
-  #RODBC::odbcClose(con)
   ROracle::dbDisconnect(con)
   
   return(da)
