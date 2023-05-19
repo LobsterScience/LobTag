@@ -56,10 +56,7 @@ process_returns_for_web = function(){
 #' @export
 rewards.loop.function = function(){
   perlist = generate.reward.data()
-  #markdownfilepath = paste("C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/","knit_rewards.Rmd", sep = "")
-  #r_drive_filepath <- "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/App files/"
-  #common_files_path <- "C:/bio/"
-  #markdownfilepath = paste(common_files_path,"knit_rewards.Rmd", sep = "")
+
   markdownfilepath = tag.markdown.location
   #markdownfilepath = "C:/bio/LobTag/knit_rewards2.Rmd"
   #k = 1
@@ -201,21 +198,19 @@ generate.reward.data = function(region = "ScotianShelf"){
 #   per$email = per$data$EMAIL
 #   print(paste(i, per$name, sep = " " ))
 # }
-
+  #i = 4
   #Loop thru each person who needs to be rewarded.
   for(i in 1:length(persplit)){
     if(i < 3000){ #Test toggle so full report isnt generated while testing ex change 3000 to 3
+      create_letter = TRUE #default letter creation to true, don't update fisher if their tags have been caught
       per = list()
       per$data = persplit[[i]]
       per$name = per$data$NAME[1]
       per$email = per$data$EMAIL
-      ############################################################################
-      # IF EMAIL == BLANK CANNOT RETURN TAG, MESSAGE TO WEBUI AND LETTER GETS
-      # SENT TO 'UNSENT'
-      ############################################################################
-      #print(per$name)
       #Add all relevant tag data to persons frame
       per$matcheddata = da[which(da$TAG_ID %in% per$data$TAG_ID),]
+      #if this name has been completely rewarded, don't go into the loop
+      #if(per$name != 'unknown' & per$data$REWARDED != 'Y'){
       if(per$name != 'unknown'){
         #Following id for code folding to exclude reading letter creation step
         if(TRUE){  
@@ -231,7 +226,8 @@ generate.reward.data = function(region = "ScotianShelf"){
             per$paraB = gsub("<tag/tags>", "tag", per$paraB)
           }
           if(all(per$data$REWARDED == "Y")){
-            per$mytagcapturedbutihavenoreturns = getBetween(lettertxt, "PARAGRAPH mytagcapturedbutihavenoreturns" ) 
+            per$mytagcapturedbutihavenoreturns = getBetween(lettertxt, "PARAGRAPH mytagcapturedbutihavenoreturns" )
+            create_letter = FALSE #don't create letter if this fisher hasn't returned anything
           }else{
             per$mytagcapturedbutihavenoreturns = ""
           }
@@ -256,6 +252,7 @@ generate.reward.data = function(region = "ScotianShelf"){
           cb = 0
           ca = 0
           utid = unique(per$data$TAG_ID)
+          #k = 1
           for(k in 1:length(utid)){
             cb = max(cb, length(which(per$matcheddata$CAPTURE_DATE[which(per$matcheddata$TAG_ID == utid[k])] <  per$data$CAPTURE_DATE[which(per$data$TAG_ID == utid[k])])))
             if(cb > 0) capbefore = T
@@ -351,11 +348,12 @@ generate.reward.data = function(region = "ScotianShelf"){
         per$end = getBetween(lettertxt, "PARAGRAPH end" )
         per$mapdisclaimer = getBetween(lettertxt, "PARAGRAPH mapdisclaimer")
         
-        #Generates charts for this person and returns a list of file locations to them
-        per$charts = rewards.chart(name = per$name, data = per$matcheddata)
-        #per$charts = outlist
-        
-        perlist[[length(perlist)+1]] = per
+        if(create_letter){
+          #Generates charts for this person and returns a list of file locations to them
+          per$charts = rewards.chart(name = per$name, data = per$matcheddata)
+          
+          perlist[[length(perlist)+1]] = per
+        }
       }
     } #End person loop 
   } #End test toggle
@@ -367,7 +365,7 @@ generate.reward.data = function(region = "ScotianShelf"){
 #' @param name The name of the person
 #' @param data The data to chart
 #' @import rgeos sp spatstat shadowtext ggplot2 ggmap ggthemes ggrepel geosphere RStoolbox raster
-rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
+rewards.chart = function(name = "", data = NULL){
   
   # The lable colors that are later randomized, opted for the following colors that are color blind friendly
   collist <- c("#E69F00", "#56B4E9", "#009E73", 
@@ -380,6 +378,8 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
   #loop thru each tag series to define boundaries and create geometeries 
   
   #i = 1 #for testing...
+  #length(tx) is number of tags, therefor number of maps
+  #each map will be saved to 3 different locations: 1 working, 1 anon, 1 to save
   for(i in 1:length(tx)){
     collist = collist[sample.int(7, 7)]
     curt = tx[[i]]
@@ -450,6 +450,7 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
   # Now that combinations are made where desired, set up geographies and 
   # plotting constraints for each map in persons clist
   #i = 1
+  
   for(i in 1:length(clist)){
     mdata = clist[[i]]
     
@@ -575,7 +576,20 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     #     savename = paste(gsub(" ", "", reldata$TAG_ID)," ",reldata$CAPTURE_DATE,"-", i, ".pdf", sep = "")
     #   }
     #}
+    anon_or_not <- c(FALSE, TRUE)
+    for(keep_anon in anon_or_not){
+      #keep_anon = TRUE
+      print(keep_anon)
     
+    if(keep_anon == TRUE){
+      anon_temp_name = name
+      name = reldata$TAG_ID
+      you_caught_lobster = "Lobster Captured: "
+      other_caught_lobster = "Lobster Captured: "
+    } else {
+      you_caught_lobster = "You Caputured: "
+      other_caught_lobster = "Other Fisher Captured: "
+    }
     mp = ggRGB(l1, r=1, g=2, b=3, maxpixels = 800000, ext = e, ggObj = T)+
       ggtitle(paste(name, i, sep = "-")) + xlab("Longitude") + ylab("Latitude")+
       ggsn::scalebar(x.min = xmin, x.max = xmax, y.min = ymin, y.max = ymax, dist_unit= "km", location = "bottomleft", anchor = c(x = xmin+2*hei, y=ymin+5*hei), transform = T, dist = dist, st.size=4, height=hei, model = 'WGS84')+
@@ -602,7 +616,7 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
         distancedf = seg[seg$POS == 1 | seg$POS == max(seg$POS),]
         path_distance = distm(c(distancedf$LON[1], distancedf$LAT[1]), c(distancedf$LON[2], distancedf$LAT[2]), fun = distHaversine)
         if(path_distance < 100){
-          print(paste("short path: ", name, sep = ""))
+          #print(paste("short path: ", name, sep = ""))
           alpha = 0
         } else {
           alpha = 0.85
@@ -627,10 +641,15 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
       reldata$RELLAT = as.numeric(reldata$RELLAT)
       labelframe = rbind(labelframe, cbind(reldata$RELLON, reldata$RELLAT, collist[j],  paste("Tag: ", reldata$TAG_ID," ",as.character(reldata$RELEASE_DATE), sep="")))
       mdata$datalist[[j]]$label = as.character(mdata$datalist[[j]]$CAPTURE_DATE)
-      mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME == name)] = paste("You Captured: ", mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME == name)], sep = "")
-      mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME != name)] = paste("Other Fisher Captured: ", mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME != name)], sep = "")
+      mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME == name)] = paste(you_caught_lobster, mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME == name)], sep = "")
+      mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME != name)] = paste(other_caught_lobster, mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME != name)], sep = "")
       labelframe = rbind(labelframe, cbind(as.numeric(mdata$datalist[[j]]$CAPLON), as.numeric(mdata$datalist[[j]]$CAPLAT), collist[j], as.character(mdata$datalist[[j]]$label)))
     }
+    
+
+    
+    
+    
     labelframe = as.data.frame(labelframe)
     names(labelframe) = c("x", "y","colID", "lab")
     labelframe$ID = 1:nrow(labelframe) 
@@ -685,13 +704,33 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     # ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = norm_path, plot = g3, width = 11, height = 10)
     # ggsave(filename = paste(gsub(" ", "", reldata$TAG_ID)," ",reldata$CAPTURE_DATE,"-", i, ".pdf", sep = ""), path = anon_path, plot = g3, width = 11, height = 10)
     #ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = fn, plot = mp, width = 11, height = 10)
-    map_path = working.maps.location
-    savename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = "")
-    ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
-    #list of maps locations on disk
-    outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+    if(!keep_anon){
+      
+      map_path = working.maps.location
+      savename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = "")
+      ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
     
-    #}
+      #save to r directory with name, tag number and date.
+      savename = paste(gsub(" ", "", name),"-", reldata$TAG_ID, " ", as.character(Sys.Date()),".pdf", sep = "")
+      map_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags and Names"
+      ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
+      outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+      }
+    
+    if(keep_anon){
+      #save anonymously to r drive
+      savename = paste(name, " ", as.character(Sys.Date()),".pdf", sep = "")
+      map_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only"
+      ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
+      name = anon_temp_name
+    }
+    
+    #outlist is for working copy of map
+    #outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+    
+    
+    }
+    
     #outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
   }
   return(outlist)

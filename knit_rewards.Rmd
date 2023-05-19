@@ -18,13 +18,13 @@ geometry: margin=.5cm
 i <- params$i
 perlist = params$perlist
 
-cat(' \\fontsize{15}{15} \\selectfont ')
+cat(' \\fontsize{14}{14} \\selectfont ')
 cat(" \\par  ")
     
 add = perlist[[i]]$data
 add = add[which(add$NAME == perlist[[i]]$name)[1],]
- 
-cat(' \\fontsize{20}{20} \\setlength{\\leftskip}{8cm} \\selectfont  ')
+
+cat(' \\fontsize{14}{14} \\setlength{\\leftskip}{8cm} \\selectfont  ')
 cat(' \\fontsize{14}{14} \\selectfont')
 cat('\\thispagestyle{empty}')
 cat("\\newgeometry{left=3cm,right=3cm,top=3cm,bottom=3cm}")
@@ -38,8 +38,11 @@ cat(perlist[[i]]$info)
 cat(perlist[[i]]$capbefore)
 cat(perlist[[i]]$capafter)
 cat(perlist[[i]]$capturedbeforeandafter)
+cat(perlist[[i]]$consider)
+cat(perlist[[i]]$pickup)
 cat(perlist[[i]]$released)
 cat(perlist[[i]]$notreleased)
+cat(perlist[[i]]$unknownrel)
 cat(perlist[[i]]$mixedrelret)
 cat(perlist[[i]]$final)
 cat(perlist[[i]]$end)
@@ -52,6 +55,7 @@ for(j in 1:length(charts)){
   impath = charts[j]
   cat("<center>")
   cat("![](",impath,")")
+  cat(perlist[[i]]$mapdisclaimer)
   cat("</center>")
   cat(" \\ ") 
   pagecount = j

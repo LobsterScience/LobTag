@@ -98,23 +98,15 @@ left: 'auto' // Left position relative to parent in px
   var target = document.getElementById('animation');
   var spinner = new Spinner(opts).spin(target);
   
-  if(check_fields(formname)){
+  
     var dta = $('#fo').serialize();
-    var req = ocpu.rpc("delete_capture_tag", {
+    var req = ocpu.rpc("delete_capture_tag_test", {
       deldata : dta
     }, function(output){  
       spinner.stop();
-      
-      
-      $('#dum2').val(output);
-      
-      if(output == "err"){
-        oops();
-      }
-      
-      else{
-        $('#mesbak').val($('#mesbak').val()+output);
-      }
+
+      //alert("output: " + output);
+      $('#mesbak').val($('#mesbak').val() + output);
       
       $("#prepage").hide();
       $("#fo").show();
@@ -128,11 +120,8 @@ left: 'auto' // Left position relative to parent in px
     req.fail(function(){
       alert("R returned an error: " + req.responseText);
     });
-  }
-  else{
-    $("#prepage").hide();
-    $("#fo").show();
-  }   return false;
+  
+   return false;
 }
 function openWin2(){
   if($('#dum2').val() != "")

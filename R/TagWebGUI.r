@@ -1,6 +1,7 @@
 #' @title upload_from_file3
 #' @import dplyr readxl
 #' @return note to use will be read in web interface
+#' @description parses data, error check and sends to sample_ent function
 #' @export
 upload_from_file3 <- function(myfile){
   #this function is called by readcsvnew2 in 'LobTagging.r'
@@ -198,6 +199,11 @@ upload_from_file3 <- function(myfile){
                          "Month", "Year", "latdd.dd", "londd.dd")
     keener_positions = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
     
+    #if the spreadsheet changes make sure these field names are the same as previous
+    #if new fields and the data needs to be passed to Oracle add them to the END of this list
+    #and then specify the list number in sample_ent to ensure the data gets all the way through
+    #note: if you add variable to the beginning of this list it will change all the variables in
+    #sample_ent
     sdata_list = c(new_df3["Vessel"][1,1],
                    new_df3["Port"][1,1],
                    new_df3["Captain"][1,1],
@@ -371,6 +377,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     dat = paste(day, mon, year, sep = "/")
   }
   
+  #database variables
   sta = ""
   res = ""
   samp = ""
@@ -379,11 +386,12 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   wrisamp = FALSE
   writrip = FALSE
 
-  #database names...
+  #database names
   database_name = paste("LOBSTER",".","LBT_TRIP", sep="")
   sampdb = paste("LOBSTER",".","LBT_SAMPLE", sep="")
   tripdb = paste("LOBSTER",".","LBT_TRIP", sep="")
   
+  #does the trip already exist?
   sql = paste("SELECT TRIP_ID from ", tripdb, " where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND TECHNICIAN = '",sam,"'", sep = "")
 
   result <- ROracle::dbSendQuery(con, sql) 
@@ -715,6 +723,7 @@ ret_ent <- function(ddata){
   }
   
   #egg data can be derived from sex input
+  #two names for same variable
   if(sex == 1){
     egg = "NA"
   }
@@ -727,6 +736,7 @@ ret_ent <- function(ddata){
   
   add = unlist(str_split(add, ","))[1]
   
+  #route if return address doesn't have a town.
   if(add == ""){
     if(rou != "")
       add = paste(str, rou, sep = ", ")
@@ -1034,6 +1044,76 @@ delete_capture_tag = function(deldata = ""){
   
   return(TRUE)
 }
+
+#' @title  delete_capture_tag
+#' @description delete lobster tag after bad data
+#' @import stringr
+delete_capture_tag_test = function(deldata = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  #deldata = "ssorg=ss&tid=901&date=05%2F14%2F2022"
+  
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
+  
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
+  
+  #find data in capture table and show in message console
+  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = to_date('", dat,"', 'dd/mm/yyyy')", sep = "")
+  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "'", sep = "")
+  
+  result <- ROracle::dbSendQuery(con, sql)
+  result <- ROracle::fetch(result)
+  ROracle::dbDisconnect(con)
+  
+  if(nrow(result) > 1){
+    out <- paste("warning, same tag caught multiple times that day")
+  }
+  #nrow(result)
+  
+  da <- result
+  
+  #my_vector <- names(da)
+  out <- paste(da[1,1], da[1,2], da[1,3], da[1,4], da[1,5], da[1,6], sep = " ")
+  #out <- da
+
+  #out = paste(tagid, date, sep = " ")
+  return(out)
+}
+
 
 #' @title  delete_lobster_peripherals
 #' @description delete lobster tag after bad data

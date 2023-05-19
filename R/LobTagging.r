@@ -1,21 +1,19 @@
-#' @title  Shortest Paths 
+#' @title  Shortestpaths.SC
 #' @description  Creates and writes the shortest paths to database
-#' @param rasterpath The canvas on which to calculate shortest path, defaults to depth raster.
 #' @param neighborhood The number of adjacent cell over which to calculate, defaults to 16.
-#' @param type The type of calculation, either 'random.walk' or 'least.cost'. Defaults to random.walk
+#' @param type The type of calculation, either 'random.walk' or 'least.cost'. Defaults to 'least.cost'
 #' @param redo Set redo = TRUE if you want to rewrite all data, FALSE to only update new entries
 #' @param region Either 'ScotianShelf' or 'Gulf'
 #' @import PBSmapping raster gdistance ROracle RMySQL rJava DBI
 #' @return dataframe
 #' @export
-shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.tif", package = "LobTag"), neighborhood = 16, type = "least.cost", redo = F, region = "ScotianShelf"){
+shortestpaths.SC = function(neighborhood = 16, type = "least.cost", redo = F, region = "ScotianShelf"){
   raster.path <- "C:/bio.data/bio.lobster/data/tagging/depthraster2.tif"
   drv <- DBI::dbDriver("Oracle")
   gstring = ""
   x = get.capturedata(region)
   x$PID = as.character(x$PID)
   
-  #x <- head(x, testrows) #just take a few for testing
   trans = NULL
   r = raster(raster.path)
   mr = as.matrix(r)
@@ -43,6 +41,7 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     da <-  ROracle::fetch(respat)
     ROracle::dbDisconnect(con)
     
+    
     goodind = which(paste(as.character(x$PID), format(x$capdate, "%d/%m/%Y")) %in% paste(as.character(da$TID), as.character(da$CDATE)))
     if(length(goodind) > 0) x = x[-goodind,]
     zeroind = which(as.numeric(x$caplat) == 0 | x$caplat == 'unknown')
@@ -52,16 +51,16 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     previd = ""
     if(nrow(x) == 0)message("No new paths to create!")
     else{
-      #i = 21
-      #for(i in 1:20){
+      #i = 3
       for(i in 1:nrow(x)){
-        print(i) # for testing
         if(x$PID[i] == previd){
-          count = count+1
+          count = count + 1 
+          #print(paste0("row 57: ", count))
         }
         else{
           previd = x$PID[i]
-          count = 1
+          count = 1 + sum(da$TID == x$PID[i])
+          #print(paste0("row 62: ", count))
         }
         start <- c(as.numeric(x$rellon[i]), as.numeric(x$rellat[i]))
         end <- c(as.numeric(x$caplon[i]), as.numeric(x$caplat[i]))
@@ -70,15 +69,14 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
           AtoB = rbind(start, end)
         }
         else{
-          #print("line 70")
           AtoB = shortestPath(trans, start, end, output="SpatialLines")
         }
         cor = data.frame(coordinates(AtoB))
         names(cor) = c("x", "y")
         xrep = cor$x[1]
         yrep = cor$y[1]
+        #k = 1
         for(k in 1:(nrow(cor)-1)){
-          
           if(cor$x[k] == xrep){ cor$x[k] = start[1] }
           else{ xrep = 1000000 }
           
@@ -87,6 +85,7 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
         }
         xrep = cor$x[nrow(cor)]
         yrep = cor$y[nrow(cor)]
+        #k = 2
         for(k in nrow(cor):2){
           if(cor$x[k] == xrep) cor$x[k] =  end[1]
           else xrep = 1000000
@@ -107,8 +106,7 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
         
         dftowrite = rbind(dftowrite, cbind(x$PID[i],paste(cor[,1], collapse = ","), paste(cor[,2], collapse = ","), as.character(x$capdat[i]), leng$length))
       }
-    }
-  
+      }
     }
   else{
     count  = 1
@@ -128,7 +126,6 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
         AtoB = rbind(start, end)
       }
       else{
-        print("line 128")
         AtoB = shortestPath(trans, start, end, output="SpatialLines")
       }
       cor = data.frame(coordinates(AtoB))
@@ -167,10 +164,16 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     dftowrite = data.frame(dftowrite)
     df2towrite = data.frame(df2towrite)
     
-    names(dftowrite) = c("ID", "LON", "LAT", "CDATE", "DIST")
-    names(df2towrite) = c("TID", "CID", "CDATE", "DIST")
+    #tax prefix should follow through, this needs to be updated before different tagging programs are added.
+    #add tag column
+    dftowrite$tag = "XY"
+    df2towrite$tag = "XY"
+    
+    names(dftowrite) = c("ID", "LON", "LAT", "CDATE", "DIST", "TAG_PREFIX")
+    names(df2towrite) = c("TID", "CID", "CDATE", "DIST", "TAG_PREFIX")
     dxtowrite = data.frame(dxtowrite)
-    names(dxtowrite) = c("TID", "CID", "POS", "LON", "LAT")
+    dxtowrite$tag = "XY"
+    names(dxtowrite) = c("TID", "CID", "POS", "LON", "LAT", "TAG_PREFIX")
     drv <- DBI::dbDriver("Oracle")
     
     Sys.setenv(TZ = "America/Halifax")
@@ -199,6 +202,7 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     
     con <- dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
     #replace this with sql loop...
+    #dbWriteTable bugs out sometimes, deleting and entering path/paths fresh is solution for now
     if(redo){
       dbWriteTable(con,"LOBSTER.LBT_PATHS", dxtowrite, overwrite = T)
       dbWriteTable(con,"LOBSTER.LBT_PATH", df2towrite, overwrite = T)     
@@ -354,23 +358,17 @@ readcsvnew2 <- function(file, ...){
     stop("Uploaded file must be a .xlsx file!")
   }
   
-  #test the file
-  #this is where the files lives
-  #file = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Lobster Tagging Data Entry Upload Template.xlsx"
-  #file = "C:/Users/mckinnonsea/Desktop/Lobster Tagging Data Entry Upload Template.xlsx"
-  #file = "C:/Users/mckinnonsea/Desktop/2022 FSRS copy for upload.xlsx"
-  file = "C:/Users/mckinnonsea/Desktop/FSRS in template upload format.xlsx"
-  #there is a lot of reading/writing from temp files here, can be streamlined.
-  
+  #saving the data as an .rda file was the quickest format to move in and out of
+  #had some formatting issues with saving as .csv first
   my_data <- read_excel(file)
   tempdata <- paste0(tempdir(),"\\data.Rda")
   
   save(my_data, file=tempdata)
   load(file=tempdata)
   
-  #save location to a random location and pass the location to the upload_from_file3 function
+  #save location to a temporary location and pass the location to the upload_from_file3 function
   #this can be streamlined by just passing data around instead of reading/writing files but
-  #is usefull for debugging for now.
+  #is usefull for debugging
   file_location = tempfile(pattern = "uploaded_file_data", tmpdir = tempdir(), fileext = ".csv")
   
   #file_location = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/file_uploads/data.csv"
@@ -389,7 +387,7 @@ readcsvnew2 <- function(file, ...){
   return(my_return)
 }
 
-#this create the sql query that we use to get around the permission glitch to upload data to oracle
+#this creates the sql query that we use to get around the permission glitch to upload data to oracle
 #used for lbt_path/lbt_paths tables
 create_sql_query = function(lbt_table, df){
   
@@ -815,9 +813,6 @@ degmin2decdeg = function(ddmmss.ss){
 #' @export
 get.pathdata.tid = function(region = "ScotianShelf", tid = ""){
   gstring = ""
-  if(region == "Gulf"){
-    gstring = "_GULF"
-  }
   
   drv <- DBI::dbDriver("Oracle")
   con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
