@@ -898,47 +898,49 @@ autoavailableT = function(region = ""){
   }, finally = {
   })
   
-  # region = "ss"
-  
   # lobster database shortcuts
   # captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
   # peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
   lbiodb = paste("LOBSTER",".","LBT_BIO", sep = "")
   
-  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   result = ""
-  #if(region == "ss"){
-    #res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
   my_qry <- paste("SELECT TAG_ID from ", lbiodb, sep = "")
   result <- ROracle::dbSendQuery(con, my_qry)
-    #old crab code
-    #result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO") 
-    
-  #}
-  # if(region == "g"){
-  #   #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
-  #   result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO_GULF") 
-  # }
+  
+  result <- ROracle::fetch(result)
+  ROracle::dbDisconnect(con)
+
+  return(toJSON(result))
+}
+
+#' @title  auto_availableCT
+#' @description same as auto_availableT, except it looks only at captured tags
+#' @import ROracle jsonlite
+#' @export
+autoavailableCT = function(region = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  # lobster database shortcuts
+  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
+  # peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
+  #lbiodb = paste("LOBSTER",".","LBT_BIO", sep = "")
+  
+  result = ""
+  #my_qry <- paste("SELECT TAG_ID from ", lbiodb, sep = "")
+  my_qry <- paste("SELECT TAG from ", captdb, sep = "")
+  result <- ROracle::dbSendQuery(con, my_qry)
   
   result <- ROracle::fetch(result)
   ROracle::dbDisconnect(con)
   
-  #odbcClose(con)
-  
   return(toJSON(result))
-  # 
-  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-  # 
-  # res = ""
-  # if(region == "ss"){
-  #   res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
-  # }
-  # if(region == "g"){
-  #   res = sqlQuery(con, "select TAG_ID from SCT_BIO_GULF" )
-  # }
-  # odbcClose(con)
-  # 
-  # return(toJSON(res))
 }
 
 #' @title  autoaddData
@@ -970,85 +972,10 @@ autoaddData = function(name = "", region = ""){
   
 }
 
-#' @title  auto_availableDate
-#' @description Function that autocompletes dates from captured tags
-#' @import ROracle jsonlite
-#' @export
-autoavailableDate = function(region = "", tagid = ""){
-  tryCatch({
-    drv <- DBI::dbDriver("Oracle")
-    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
-  }, warning = function(w) {
-  }, error = function(e) {
-    return(toJSON("Connection failed"))
-  }, finally = {
-  })
-
-  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
-
-  tagid = 2587 #testout a random tag
-  my_qry <- paste("SELECT CAPTURE_DATE FROM ", captdb, " WHERE TAG = '", tagid, "'", sep = "")
-  result <- ROracle::dbSendQuery(con, my_qry)
-
-  result <- ROracle::fetch(result)
-  ROracle::dbDisconnect(con)
-  
-  return(toJSON(result))
-}
-
-#' @title  delete_capture_tag
-#' @description delete lobster tag after bad data
-delete_capture_tag = function(deldata = ""){
-  tryCatch({
-    drv <- DBI::dbDriver("Oracle")
-    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
-  }, warning = function(w) {
-  }, error = function(e) {
-    return(toJSON("Connection failed"))
-  }, finally = {
-  })
-  
-  tagid = ""
-  date = ""
-  
-  biodb  = paste("LOBSTER",".","LBT_BIO", sep = "")
-  tripdb  = paste("LOBSTER",".","LBT_TRIP", sep = "")
-  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
-  
-  my_query = paste('DELETE FROM "LOBSTER"."LBT_CAPTURE" WHERE TAGID = ' ,sep = "")
-  #tagid = 2587
-  #date = result[[1]][1]
-  
-  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = '", '24-MAY-22', "'", sep = "")
-  
-  my_query = paste("DELETE FROM ", captdb, " WHERE TAG_ID = '", tagid, "' AND CAPTURE_DATE = '", date, "'", sep = "")
-  my_query = paste("DELETE FROM ", captdb, " WHERE TAG_ID = '", tagid, "' AND CAPTURE_DATE = '", date, "'", sep = "")
-  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = '", date, "'", sep = "")
-  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "'", sep = "")
-  
-  #tagid = 'testvessel'
-  sql = paste("DELETE FROM ", biodb, " where TAG_ID = '", tagid,"'", sep = "")
-  sql = paste("DELETE FROM ", tripdb, " where VESSEL = '", tagid,"'", sep = "")
-  
-  #do this except delete entire row instead of selecting.
-  
-  send_query = ROracle::dbSendQuery(con, sql)
-  
-  ROracle::dbCommit(con)
-  ROracle::dbDisconnect(con)
-  
-  result <- ROracle::dbSendQuery(con, sql)
-  result <- ROracle::fetch(result)
-  ROracle::dbDisconnect(con)
-  
-  
-  return(TRUE)
-}
-
-#' @title  delete_capture_tag
-#' @description delete lobster tag after bad data
-#' @import stringr
-delete_capture_tag_test = function(deldata = ""){
+#' @title  find_capture_tag
+#' @description find captured tag data to delete
+#' @import stringr jsonlite
+find_capture_tag = function(deldata = ""){
   tryCatch({
     drv <- DBI::dbDriver("Oracle")
     con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
@@ -1093,31 +1020,33 @@ delete_capture_tag_test = function(deldata = ""){
   
   #find data in capture table and show in message console
   sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = to_date('", dat,"', 'dd/mm/yyyy')", sep = "")
-  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "'", sep = "")
+  #sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "'", sep = "")
   
   result <- ROracle::dbSendQuery(con, sql)
   result <- ROracle::fetch(result)
   ROracle::dbDisconnect(con)
   
+  out = ""
+  
   if(nrow(result) > 1){
     out <- paste("warning, same tag caught multiple times that day")
   }
-  #nrow(result)
   
   da <- result
   
   #my_vector <- names(da)
-  out <- paste(da[1,1], da[1,2], da[1,3], da[1,4], da[1,5], da[1,6], sep = " ")
+  #out <- paste(da[1,1], da[1,2], da[1,3], da[1,4], da[1,5], da[1,6], sep = " ")
+  out <- paste(out, jsonlite::toJSON(da), sep = "\n")
   #out <- da
 
   #out = paste(tagid, date, sep = " ")
   return(out)
 }
 
-
-#' @title  delete_lobster_peripherals
-#' @description delete lobster tag after bad data
-delete_lobster_peripherals = function(tagid = ""){
+#' @title  delete_capture_tag2
+#' @description find captured tag data to delete
+#' @import stringr jsonlite
+delete_capture_tag2 = function(deldata = ""){
   tryCatch({
     drv <- DBI::dbDriver("Oracle")
     con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
@@ -1127,23 +1056,213 @@ delete_lobster_peripherals = function(tagid = ""){
   }, finally = {
   })
   
-  #delete trip if empty
-  biodb  = paste("Lobster",".","LBT_BIO", sep = "")
-  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
-  peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
   
-  send_query = ROracle::dbSendQuery(con, sampsql)
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER", ".", "LBT_CAPTURE", sep = "")
+  pathdb = paste("LOBSTER", ".", "LBT_PATH", sep = "")
+  pathsdb = paste("LOBSTER", ".", "LBT_PATHS", sep = "")
+  
+  #user will have okay'd the query, so we'll run it here and delete
+  #delete from capture table
+  capture_delete_query = paste("DELETE FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = to_date('", dat,"', 'dd/mm/yyyy')", sep = "")
+  
+  #delete all instances of tag in PATH table
+  path_delete_query = paste("DELETE FROM ", pathdb, " WHERE TID = '", tagid, "'", sep = "")
+  
+  #delete all instances in PATHS table
+  paths_delete_query = paste("DELETE FROM ", pathsdb, " WHERE TID = '", tagid, "'", sep = "")
+  
+  #send all queries
+  send_capture_query = ROracle::dbSendQuery(con, capture_delete_query)
+  send_path_query = ROracle::dbSendQuery(con, path_delete_query)
+  send_paths_query = ROracle::dbSendQuery(con, paths_delete_query)
+  
+  ROracle::dbCommit(con)
+  ROracle::dbDisconnect(con)
+
+  out <- paste("\nCAPTURE data for tag: ", tagid, " on ", dat, " has been deleted.\nAll PATH and PATHS data for tag: ", tagid, " has been deleted.", sep = "")
+
+  return(out)
+}
+
+#' @title  find_release_tag
+#' @description find captured tag data to delete
+#' @import stringr jsonlite
+find_release_tag = function(deldata = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  #deldata = "ssorg=ss&tid=300&date=05%2F14%2F2022"
+  
+  #each tag only has one release, so we can search everything but tagid only
+  
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
+  
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
+  biodb = paste("LOBSTER",".","LBT_BIO", sep = "")
+  sampdb = paste("LOBSTER",".","LBT_SAMPLE", sep = "")
+  tripdb = paste("LOBSTER",".","LBT_TRIP", sep = "")
+  
+  #find data in bio table and show in message console
+  tag_sql = paste("SELECT * FROM ", biodb, " WHERE TAG_ID = '", tagid, "'", sep = "")
+  
+  result <- ROracle::dbSendQuery(con, tag_sql)
+  result <- ROracle::fetch(result)
+  
+  samp = result[['SAMPLE_NUM']]
+  samp_sql = paste("SELECT * FROM ", sampdb, " WHERE SAMPLE_ID = '", samp, "'", sep = "")
+  
+  samp_result <- ROracle::dbSendQuery(con, samp_sql)
+  samp_result <- ROracle::fetch(samp_result)
+  
+  #get all tags that are in the same sample as the problem tag.
+  all_tags_in_sample_sql = paste("SELECT TAG_ID FROM ", biodb, " WHERE SAMPLE_NUM = '", samp, "'", sep = "")
+  
+  all_tags_result <- ROracle::dbSendQuery(con, all_tags_in_sample_sql)
+  all_tags_result <- ROracle::fetch(all_tags_result)
+  
+  #trip = samp_result[['TRIP']]
+  #trip_sql = paste("SELECT * FROM ", tripdb, " WHERE SAMPLE_ID = '", samp, "'", sep = "")
+  
+  #samp_result <- ROracle::dbSendQuery(con, samp_sql)
+  #samp_result <- ROracle::fetch(samp_result)
+  
+  ROracle::dbDisconnect(con)
+  
+  out = ""
+  
+  da <- result
+  out <- paste(out, jsonlite::toJSON(da), sep = "\n")
+  
+  out = paste(out, "\n\nThese are all the tags in the same sample group:", sep = "")
+  out = paste(out, all_tags_result, sep = "")
+
+  return(out)
+}
+
+#' @title  delete_one_release_tag
+#' @description only deletes the one tag
+#' @import stringr jsonlite
+delete_one_release_tag = function(deldata = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
+  
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER", ".", "LBT_CAPTURE", sep = "")
+  pathdb = paste("LOBSTER", ".", "LBT_PATH", sep = "")
+  pathsdb = paste("LOBSTER", ".", "LBT_PATHS", sep = "")
+  
+  release_delete_query = paste("DELETE FROM ", biodb, " WHERE TAG_ID = '", tagid, "'", sep = "")
+
+  #send query
+  send_capture_query = ROracle::dbSendQuery(con, release_delete_query)
   
   ROracle::dbCommit(con)
   ROracle::dbDisconnect(con)
   
-  #delete sample
-  return(TRUE)
+  out <- paste("\nRelease data for tag: ", tagid, " has been deleted from BIO Table.", sep = "")
+  
+  return(out)
 }
 
-#' @title  delete_lobster_capture
-#' @description delete lobster capture data
-delete_lobster_capture = function(tagid = ""){
+#' @title  delete_all_release_tag
+#' @description delete entire sample of tags
+#' @import stringr jsonlite
+delete_all_release_tag = function(deldata = ""){
   tryCatch({
     drv <- DBI::dbDriver("Oracle")
     con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
@@ -1153,6 +1272,70 @@ delete_lobster_capture = function(tagid = ""){
   }, finally = {
   })
   
-  my_query = paste('DELETE FROM "LOBSTER"."LBT_CAPTURE" WHERE ',sep = "")
-  return(TRUE)
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
+  
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER", ".", "LBT_CAPTURE", sep = "")
+  pathdb = paste("LOBSTER", ".", "LBT_PATH", sep = "")
+  pathsdb = paste("LOBSTER", ".", "LBT_PATHS", sep = "")
+  
+  #find problem tag number and delete all tags from same sample
+  tag_sql = paste("SELECT * FROM ", biodb, " WHERE TAG_ID = '", tagid, "'", sep = "")
+  
+  result <- ROracle::dbSendQuery(con, tag_sql)
+  result <- ROracle::fetch(result)
+  
+  samp = result[['SAMPLE_NUM']]
+  samp_sql = paste("SELECT * FROM ", sampdb, " WHERE SAMPLE_ID = '", samp, "'", sep = "")
+  
+  samp_result <- ROracle::dbSendQuery(con, samp_sql)
+  samp_result <- ROracle::fetch(samp_result)
+  
+  #this is just for reporting to console, to let user know exactly which tags have
+  #been deleted.
+  all_tags_in_sample_sql = paste("SELECT TAG_ID FROM ", biodb, " WHERE SAMPLE_NUM = '", samp, "'", sep = "")
+  
+  all_tags_result <- ROracle::dbSendQuery(con, all_tags_in_sample_sql)
+  all_tags_result <- ROracle::fetch(all_tags_result)
+  
+  #delete bio table tags and single sample number row
+  tags_delete_query = paste("DELETE FROM ", biodb, " WHERE SAMPLE_NUM = '", samp, "'", sep = "")
+  sample_delete_query = paste("DELETE FROM ", sampdb, " WHERE SAMPLE_ID = '", samp, "'", sep = "")
+  
+  #send query
+  send_bio_query = ROracle::dbSendQuery(con, tags_delete_query)
+  send_sample_query = ROracle::dbSendQuery(con, sample_delete_query)
+  
+  ROracle::dbCommit(con)
+  ROracle::dbDisconnect(con)
+  
+  out <- paste("\nAll releases in sample: ", samp, " have been deleted from BIO Table: ", all_tags_result, "\nSample ", samp, " deleted from LBT_SAMPLE table",  sep = "")
+  
+  return(out)
 }

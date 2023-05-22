@@ -98,9 +98,8 @@ left: 'auto' // Left position relative to parent in px
   var target = document.getElementById('animation');
   var spinner = new Spinner(opts).spin(target);
   
-  
     var dta = $('#fo').serialize();
-    var req = ocpu.rpc("delete_capture_tag_test", {
+    var req = ocpu.rpc("find_capture_tag", {
       deldata : dta
     }, function(output){  
       spinner.stop();
@@ -110,11 +109,12 @@ left: 'auto' // Left position relative to parent in px
       
       $("#prepage").hide();
       $("#fo").show();
-      $("#rc-choice-y").prop('checked', false);
-      $("#rc-choice-n").prop('checked', true);        
+      //$("#rc-choice-y").prop('checked', false);
+      //$("#rc-choice-n").prop('checked', true);        
       $("#nfg").hide();
       $("#nopos").hide();
-      $("#tagid").val("");
+      //$("#tagid").val("");
+      $("#delete").removeAttr("hidden")
       
     });
     req.fail(function(){
@@ -123,6 +123,60 @@ left: 'auto' // Left position relative to parent in px
   
    return false;
 }
+
+function checkenter2(formname) {
+  $("#prepage").show();
+  $("#fo").hide();
+  var opts = {
+lines: 10, // The number of lines to draw
+length: 8, // The length of each line
+width: 7, // The line thickness
+radius: 0, // The radius of the inner circle
+corners: 1, // Corner roundness (0..1)
+rotate: 0, // The rotation offset
+direction: 1, // 1: clockwise, -1: counterclockwise
+color: '#2576B7', // #rgb or #rrggbb or array of colors
+speed: 1, // Rounds per second
+trail: 60, // Afterglow percentage
+shadow: false, // Whether to render a shadow
+hwaccel: false, // Whether to use hardware acceleration
+className: 'spinner', // The CSS class to assign to the spinner
+zIndex: 2e9, // The z-index (defaults to 2000000000)
+top: '-500', // Top position relative to parent in px
+left: 'auto' // Left position relative to parent in px
+  };
+  
+  var target = document.getElementById('animation');
+  var spinner = new Spinner(opts).spin(target);
+  
+    var dta = $('#fo').serialize();
+    var req = ocpu.rpc("delete_capture_tag2", {
+      deldata : dta
+    }, function(output){  
+      spinner.stop();
+
+      //alert("output: " + output);
+      $('#mesbak').val($('#mesbak').val() + output);
+      
+      $("#prepage").hide();
+      $("#fo").show();
+      //$("#rc-choice-y").prop('checked', false);
+      //$("#rc-choice-n").prop('checked', true);        
+      $("#nfg").hide();
+      $("#nopos").hide();
+      //$("#tagid").val("");
+      //$("#delete").setAttribute("hidden", "hidden")
+      document.getElementById("delete").setAttribute("hidden", "hidden")
+      //$("#delete").removeAttr("hidden")
+      
+    });
+    req.fail(function(){
+      alert("R returned an error: " + req.responseText);
+    });
+  
+   return false;
+}
+
 function openWin2(){
   if($('#dum2').val() != "")
   window.open($('#dum2').val(),"mywin","menubar=0,resizable=0,width=950,height=950")
@@ -161,12 +215,13 @@ $(function() {
     if (this.value == 'g') {
       ssorg = "g";
     }
-    var req = ocpu.rpc("autoavailableT",{}, function(output){
+    var req = ocpu.rpc("autoavailableCT",{}, function(output){
     
       var obj = JSON.parse(output);
       for (var j in obj){
   
-        availableTags[j] = obj[j]["TAG_ID"];
+        //availableTags[j] = obj[j]["TAG_ID"];
+        availableTags[j] = obj[j]["TAG"];
       }
     
     });
@@ -389,11 +444,11 @@ spin: function( event, ui ) {
 <div id="wrapper">
 <div id="page" style = "width:800px;">
 <div id="contentpane">
-<h2>Delete Tags Form</h2><br/>
+<h2>Delete Capture Tags Form</h2><br/>
 <br/>
 <br/>
 <br/>
-<div id="prepage">Deleting tag records...<br/><br/> <div id="animation"></div></div>
+<div id="prepage">working...<br/><br/> <div id="animation"></div></div>
 <form id = "fo" name = "myForm" action="" method="post" style= "visibility: visible; border: solid; padding: 10px; border-radius: 15px;"  >
 
 <div style='clear: left'></div>
@@ -423,11 +478,12 @@ spin: function( event, ui ) {
 <label></label> <input id="dum2" style="margin-right: 400px; float: right;"/>   <br/>
 <div id='buttons'>
 <input type="button" name="submit" class="f" id="submit" value="Submit" onClick = "return checkenter(this.form)" style="height:40px; width:70px; color:blue; font-size: 11pt;">
+<input type="button" name="delete" class="f" id="delete" value="Delete" hidden="hidden" onClick = "return checkenter2(this.form)" style="height:40px; width:70px; color:red; font-size: 11pt;">
 </div>
 </form>
 </div>
-      <br class="clearfix" />
-        <div id="sidebar">
+<br class="clearfix" />
+<!--<div id="sidebar">-->
     <textarea rows="10" name="mesbak" id="mesbak">
 MESSAGE CONSOLE
 </textarea>

@@ -140,18 +140,17 @@ left: 'auto' // Left position relative to parent in px
 			ddata : dta
 		}, function(output){	
 			spinner.stop();
-			
-			
 			$('#dum2').val(output);
 			
 			if(output == "err"){
 				oops();
 			}
-			
 			else{
+				//document.getElementById('fo').reset();
+				//resetting everything by line. dont' reset lat/lon
+				//can adjust if name ids don't need to be reset either
 
-				// window.open(outc,'','menubar=0,resizable=0,width=950,height=950');
-				//thanks();
+
 				$('#mesbak').val($('#mesbak').val()+output);
 			}
 			
@@ -162,7 +161,34 @@ left: 'auto' // Left position relative to parent in px
 			$("#nfg").hide();
 			$("#nopos").hide();
 			$("#tagid").val("");
-			//clear all sheet boxes.
+
+			$("#tagprefix").val("");
+			$("#datepicker").val("");
+			$("#ves").val("");
+			$("#depth").val("");
+			//document.getElementByName('spinner').reset()
+
+			$("#radio-choice-y").prop('checked', false);
+			$("#radio-choice-n").prop('checked', false);
+			$("#radio-choice-u").prop('checked', false);
+
+			$("#person").val("");
+			$("#addresspicker_map").val("");
+			$("#street_number").val("");
+			$("#route").val("");
+			$("#locality").val("");
+			$("#administrative_area_level_1").val("");
+			$("#country").val("");
+			$("#postal_code").val("");
+			$("#email").val("");
+			$("#phonea").val("");
+			$("#phoneb").val("");
+			$("#afi").val("");
+			$("#lfa").val("");
+
+			$("#sex").val("");
+			$("#carapace_l").val("");
+			$("#comments").val("");
 			
 		});
 		req.fail(function(){
@@ -236,14 +262,13 @@ function check_fields(formname) {
 </script>
 <script>
 $(function() {
-  	var availableNames = [];
+  var availableNames = [];
 	var availableTags = [];
 	var ssorg = "";
   
-
 	$('input[type=radio][name=ssorg]').change(function() {
 	  
-	  	availableTags = [];
+	availableTags = [];
 	availableNames = [];
 		if (this.value == 'ss') {
 			ssorg = "ss";
@@ -274,8 +299,6 @@ $(function() {
 			alert("R returned an error: " + req2.responseText);
 		});
 		
-		
-
   
   	$("#tagid").autocomplete({
 source: availableTags,
@@ -305,7 +328,6 @@ source: availableNames
 		
 	});
 	
-	
 	$( "#ssorg-y" ).trigger( "click" );
 	
 
@@ -318,12 +340,12 @@ scrollwheel: false,
 mapTypeId: google.maps.MapTypeId.ROADMAP
 		},
 elements: {
-			street_number: '#street_number',
+street_number: '#street_number',
 route: '#route',
 locality: '#locality',
-			administrative_area_level_1: '#administrative_area_level_1',
+administrative_area_level_1: '#administrative_area_level_1',
 country:  '#country',
-			postal_code: '#postal_code'
+postal_code: '#postal_code'
 			
 		}
 	});
@@ -363,46 +385,6 @@ $(document).ready(function(){
 		$("#cc").fadeToggle();
 	});
 	
-	/*
-	var myLatlng = new google.maps.LatLng(44.5, -61.5);
-	var myLatlng2 = new google.maps.LatLng(46.5, -66.3);
-	var mapOptions = {
-zoom: 7,
-center: myLatlng2,
-mapTypeId: google.maps.MapTypeId.SATELLITE,
-	}
-	var gmap = new google.maps.Map(document.getElementById("gmap"), mapOptions);
-	// Marker and InfoWindow setup
-	var marker = new google.maps.Marker({
-position: myLatlng,
-map: gmap,
-draggable: true,
-	});
-	//marker.bindInfoWindowHtml(infoWindowMarkup);
-	google.maps.event.addListener(marker, "drag", function(event){
-		var lat = marker.getPosition().lat();
-		var lde = Math.floor( lat );
-		var ldd =  lat - lde;
-		var ldda = ldd*60;
-		var deg = Math.floor(ldda);
-		var ddeg = (ldda - deg)*100;
-		$( "#amount" ).val( lde +"\xB0"+  ldda.toFixed(2) + "N");
-		$( "#slider" ).spinner( "value", lde );
-		$( "#slidermin" ).spinner( "value", deg) ;
-		$( "#sliderdmin" ).spinner( "value", Math.round(ddeg));
-		var lng = marker.getPosition().lng();
-		var ldx = Math.ceil( lng );
-		var lddx =  lng - ldx;
-		var lddax = lddx*-60;
-		var degx = Math.floor(lddax);
-		var ddegx = (lddax - degx)*100;
-		$( "#amount2" ).val( ldx +"\xB0"+  lddax.toFixed(2) + "W");
-		$( "#sliderx" ).spinner( "value", ldx*-1 );
-		$( "#slidermin2" ).spinner( "value", degx) ;
-		$( "#sliderdmin2" ).spinner( "value", Math.round(ddegx));
-	});
-	
-	*/
 });
 $(function() {
 	var spinner = $( "#spinner" ).spinner({
@@ -605,7 +587,7 @@ spin: function( event, ui ) {
 <pb>How many fathoms of water was this lobster captured in?</pb>
 <br/>
 <div style = "margin-left: 90px;">
-<input id="spinner" name="depth" style="color: blue; font-size: 11pt;" />
+<input id="depth" style="color: blue; font-size: 11pt;" />
 (zero for unknown)
 </div>
 <br/>
@@ -670,7 +652,7 @@ spin: function( event, ui ) {
 
 
 <br/>
-Can you provide any additional comments?(temperature, animal health, etc.)
+Can you provide any additional comments? (temperature, animal health, etc.)
 <br/>
 <pb>Lobster Sex?</pb>
 <br/>
@@ -683,7 +665,7 @@ Can you provide any additional comments?(temperature, animal health, etc.)
 <div id="mf" ></div>
 <pb>Other Comments</pb>
 <br/>
-<textarea name= "comments" rows="4" cols="50" style=" color:blue; font-size: 11pt;">
+<textarea id="comments" name="comments" rows="4" cols="50" style=" color:blue; font-size: 11pt;">
 </textarea>
 <label></label> <input id="dum" style="margin-right: 400px; float: right;"/>   <br/>
 <label></label> <input id="dum2" style="margin-right: 400px; float: right;"/>   <br/>
@@ -692,7 +674,7 @@ Can you provide any additional comments?(temperature, animal health, etc.)
 </div>
 <br>
 <br>
-<a href="delete_tags.html" style="color: black;" target="_blank">Delete captured tags here.</a>
+<a href="delete_capture_tags.html" style="color: black;" target="_blank">Delete captured tags here.</a>
 <br>
 <br>
 </form>
