@@ -151,6 +151,9 @@
         var req = ocpu.rpc("open_pdf_file", {}, function(output) {
           alert("no errors: " + output)
           load()
+          document.getElementById('submit3').disabled = false;
+          document.getElementById('submit4').disabled = false;
+          document.getElementById('submit5').disabled = false;
 
         });
         req.fail(function() {
@@ -160,9 +163,9 @@
         });
 
         req.always(function(){
-          $("#submit3").removeAttr("disabled")
-          $("#submit4").removeAttr("disabled")
-          $("#submit5").removeAttr("disabled")
+          //$("#submit3").removeAttr("disabled")
+          //$("#submit4").removeAttr("disabled")
+          //$("#submit5").removeAttr("disabled")
         });
         return false;
 
@@ -195,7 +198,8 @@
           //alert("no errors: " + output)
           load()
           $('#mesbak').val($('#mesbak').val() + output);
-          $("#submit4").attr("disabled", "disabled")
+          //$("#submit4").attr("disabled", "disabled")
+          document.getElementById('submit4').disabled = false;
           $("#submit5").removeAttr("hidden")
         });
         req.fail(function() {
