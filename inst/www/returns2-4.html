@@ -1,0 +1,632 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <title>Tag Return</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+    <script src="opencpu/jquery-1.10.2.min.js"></script>
+    <script src="opencpu/opencpu-0.4.js"></script>
+    <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
+    <script src="jq/jquery.ui.addresspicker.js"></script>
+    <script src="jq/spin/spin.js"></script>
+    <script src="jq/spin/spin.min.js"></script>
+    <style>
+      #datepicker {
+        position: relative;
+        z-index: 10000;
+      }
+
+      pb {
+        font-family: arial black;
+      }
+
+      py {
+        font-family: arial yellow;
+      }
+
+
+      #mf {
+        width: 700px;
+        height: 430px;
+        background: url(images/carapacecond.png) top center no-repeat;
+        z-index: 10001;
+        position: fixed;
+        left: inherit;
+        top: 10%;
+      }
+
+      #showmf {
+        display: inline;
+        display: -webkit-inline-box;
+        z-index: 10002;
+      }
+
+      #mslider {
+        width: 200px;
+        margin-left: 15px;
+        margin-top: 5px;
+        position: relative;
+      }
+
+      #fslider {
+        width: 200px;
+        margin-left: 15px;
+        margin-top: 5px;
+        position: relative;
+      }
+
+      #spinner {
+        width: 70px;
+        position: relative;
+      }
+    </style>
+    <SCRIPT>
+      function populatedata(reg) {
+        nam = $('#person').val();
+        var req = ocpu.rpc("autoaddData", {
+          name: nam,
+          region: reg
+        }, function(message) {
+          if (message == false) {
+            alert(message);
+          } else {
+            message = JSON.parse(message);
+            var array;
+            if (typeof message[0].CIVIC != "undefined") {
+              array = message[0].CIVIC.split(", ");
+              $("#street_number").val(array[0]);
+              $("#route").val(array[1]);
+            }
+            if (typeof message[0].TOWN != "undefined") $("#locality").val(message[0].TOWN);
+            if (typeof message[0].PROV != "undefined") $("#administrative_area_level_1").val(message[0].PROV);
+            if (typeof message[0].POST != "undefined") $("#postal_code").val(message[0].POST);
+            if (typeof message[0].EMAIL != "undefined") $("#email").val(message[0].EMAIL);
+            if (typeof message[0].PHO1 != "undefined") $("#phonea").val(message[0].PHO1);
+            if (typeof message[0].PHO2 != "undefined") $("#phoneb").val(message[0].PHO2);
+            if (typeof message[0].COUNTRY != "undefined") $("#country").val(message[0].COUNTRY);
+            if (typeof message[0].LFA != "undefined") $("#lfa").val(message[0].LFA);
+            if (typeof message[0].AFFILIATION != "undefined") $("#afi").val(message[0].AFFILIATION);
+          }
+        });
+        req.fail(function() {
+          alert("R returned an error: " + req.responseText);
+        });
+      }
+
+      function checkenter(formname) {
+        $("#prepage").show();
+        $("#fo").hide();
+        var opts = {
+          lines: 10, // The number of lines to draw
+          length: 8, // The length of each line
+          width: 7, // The line thickness
+          radius: 0, // The radius of the inner circle
+          corners: 1, // Corner roundness (0..1)
+          rotate: 0, // The rotation offset
+          direction: 1, // 1: clockwise, -1: counterclockwise
+          color: '#2576B7', // #rgb or #rrggbb or array of colors
+          speed: 1, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: false, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: '-500', // Top position relative to parent in px
+          left: 'auto' // Left position relative to parent in px
+        };
+        var target = document.getElementById('animation');
+        var spinner = new Spinner(opts).spin(target);
+        if (check_fields(formname)) {
+          var dta = $('#fo').serialize();
+          var req = ocpu.rpc("ret_ent", {
+            ddata: dta
+          }, function(output) {
+            spinner.stop();
+            $('#dum2').val(output);
+            if (output == "err") {
+              oops();
+            } else {
+              //resetting everything by line. dont' reset lat/lon
+              //can adjust if name ids don't need to be reset either
+              $('#mesbak').val($('#mesbak').val() + output);
+            }
+            $("#prepage").hide();
+            $("#fo").show();
+            $("#rc-choice-y").prop('checked', false);
+            $("#rc-choice-n").prop('checked', true);
+            $("#nfg").hide();
+            $("#nopos").hide();
+            $("#tagid").val("");
+            $("#tagprefix").val("");
+            $("#datepicker").val("");
+            $("#ves").val("");
+            $("#depth").val("");
+
+            $("#radio-choice-y").prop('checked', false);
+            $("#radio-choice-n").prop('checked', false);
+            $("#radio-choice-u").prop('checked', false);
+            $("#person").val("");
+            $("#addresspicker_map").val("");
+            $("#street_number").val("");
+            $("#route").val("");
+            $("#locality").val("");
+            $("#administrative_area_level_1").val("");
+            $("#country").val("");
+            $("#postal_code").val("");
+            $("#email").val("");
+            $("#phonea").val("");
+            $("#phoneb").val("");
+            $("#afi").val("");
+            $("#lfa").val("");
+            $("#sex").val("");
+            $("#carapace_l").val("");
+            $("#comments").val("");
+          });
+          req.fail(function() {
+            alert("R returned an error: " + req.responseText);
+          });
+        } else {
+          $("#prepage").hide();
+          $("#fo").show();
+        }
+        return false;
+      }
+
+      function openWin2() {
+        if ($('#dum2').val() != "") window.open($('#dum2').val(), "mywin", "menubar=0,resizable=0,width=950,height=950")
+      }
+
+      function thanks() {
+        alert("Thank You!! Your entry has been received and a chart has been produced. You can continue entering more tags, just update the data in the form and click submit again. If you supplied an address and your data checks out, you will receive a detailed report and a reward. If you would like to save the chart, right click on the chart and select save image as. (You may need to allow popups for this site to view the chart, or, scroll to the bottom of the page and click on the click here text");
+      }
+
+      function oops() {
+        alert("OOPS!! Your entry has been received but due to an error, your chart could not be produced. This is most likely because the tagged lobster you captured was recently released and the data is not yet in the database. You can continue entering more tags, just update the data in the form and click submit again. If you supplied an address and your data checks out, you will receive a detailed report and a reward.");
+      }
+
+      function loads() {
+        $("#prepage").hide();
+      }
+
+      function loadn() {
+        $("#prepage").show();
+        $("#fo").hide();
+      }
+
+      function load() {
+        $("#prepage").hide();
+        $("#fo").show();
+      }
+
+      function openWin(img) {
+        window.open(img, "mywin", "menubar=0,resizable=0,width=950,height=950")
+      }
+
+      function check_fields(formname) {
+        var returnval = false;
+        var msg = "";
+        if (formname.date.value == "") msg += "You must enter a date\n";
+        if (formname.tid.value == "") msg += "You must enter the tag number\n";
+        if (formname.person.value == "") msg += "You must enter your name\n";
+        if (!document.getElementById('radio-choice-y').checked)
+          if (!document.getElementById('radio-choice-n').checked)
+            if (!document.getElementById('radio-choice-u').checked) msg += "You must specify if the tag was returned to the water\n";
+        if (!formname.dum.value == "") {
+          msg += "please remove any text in the last entry box. The form thinks you may be a robot!\n";
+        }
+        if (formname.lat.value == "45\xB030.50N") {
+          $("#nopos").show();
+          msg += "It does not look like you selected a latitude! If you do not know where the lobster was captured set the position to 60\xB000.00W 46\xB000.00N\n";
+        }
+        if (formname.lon.value == "60\xB030.50W") {
+          msg += "It does not look like you selected a longitude! If you do not know where the lobster was captured set the position to 60\xB000.00W 46\xB000.00N\n";
+          $("#nopos").show();
+        }
+        if (msg == "") {
+          returnval = true;
+          return returnval;
+        } else {
+          alert(msg);
+          return returnval;
+        }
+      }
+    </script>
+    <script>
+      $(function() {
+        var availableNames = [];
+        var availableTags = [];
+        var ssorg = "";
+        $('input[type=radio][name=ssorg]').change(function() {
+          availableTags = [];
+          availableNames = [];
+          var req = ocpu.rpc("autoavailableT", {}, function(output) {
+            var obj = JSON.parse(output);
+            for (var j in obj) {
+              availableTags[j] = obj[j]["TAG_ID"];
+            }
+          });
+          req.fail(function() {
+            alert("R returned an error: " + req.responseText);
+          });
+          var req2 = ocpu.rpc("autoavailableP", {
+            region: ssorg
+          }, function(output2) {
+            var obj2 = JSON.parse(output2);
+            for (var k in obj2) {
+              availableNames[k] = obj2[k]["NAME"];
+            }
+          });
+          req2.fail(function() {
+            alert("R returned an error: " + req2.responseText);
+          });
+          $("#tagid").autocomplete({
+            source: availableTags,
+            autoFocus: true,
+            select: function(event, ui) {}
+          });
+          $("#person").autocomplete({
+            source: availableNames
+          });
+          $("#person").blur(function() {
+            populatedata(ssorg);
+          });
+          $("#tagid").focusout(function() {
+            var a = availableTags.indexOf($(this).val());
+            if (a == -1) {
+              $("#nfg").show();
+            } else {
+              $("#rc-choice-y").prop('checked', false);
+              $("#rc-choice-n").prop('checked', true);
+              $("#nfg").hide();
+            }
+          });
+        });
+      });
+    </script>
+    <script>
+      $(document).ready(function() {
+        $("#rc-choice-n").prop('checked', true);
+        $("#nfg").hide();
+        $("#nopos").hide();
+        $("#mf").hide();
+        $("#showmf").mouseover(function() {
+          $("#mf").fadeToggle();
+        }).mouseout(function() {
+          $("#mf").fadeToggle();
+        });
+        $('#dum2').val("");
+        loads();
+        $("#gmap").hide();
+        $("#show").click(function() {
+          $("#gmap").fadeToggle();
+          google.maps.event.trigger(gmap, 'resize');
+        });
+        $("#cc").hide();
+        $("#dum").hide();
+        $("#dum2").hide();
+        $("#showcc").hover(function() {
+          $("#cc").fadeToggle();
+        }, function() {
+          $("#cc").fadeToggle();
+        });
+      });
+      $(function() {
+        var spinner = $("#spinner").spinner({
+          min: 0,
+          max: 200,
+          step: 1,
+        });
+        $("#spinner").spinner("value", 'unknown');
+        $('#spinner').on("spinstop", function() {
+          if ($(this).spinner('value') == 0) {
+            $('#spinner').spinner("value", "unknown");
+          }
+        });
+        var date = $("#datepicker").datepicker();
+        $("#slider").spinner({
+          min: 43,
+          max: 47,
+          step: 1,
+          spin: function(event, ui) {
+            $("#amount").val(ui.value + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+          }
+        });
+        $("#slider").spinner("value", 45);
+        var dlist = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59'];
+        $("#slidermin").spinner({
+          min: 0,
+          max: 59,
+          step: 1,
+          spin: function(event, ui) {
+            $("#amount").val($("#slider").spinner("value") + "\xB0" + dlist[ui.value] + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+          }
+        });
+        $("#slidermin").spinner("value", 30);
+        $("#sliderdmin").spinner({
+          min: 00,
+          max: 999,
+          step: 01,
+          spin: function(event, ui) {
+            $("#amount").val($("#slider").spinner("value") + "\xB0" + dlist[$("#slidermin").spinner("value")] + "." + pad(ui.value, 2) + "N");
+          }
+        });
+        $("#sliderdmin").spinner("value", 50);
+        $("#amount").val($("#slider").spinner("value") + "\xB0" + dlist[$("#slidermin").spinner("value")] + "." + $("#sliderdmin").spinner("value") + "N");
+        $("#slider").on("spinchange", function(event, ui) {
+          var val = this.value,
+            $this = $(this),
+            max = $this.spinner('option', 'max'),
+            min = $this.spinner('option', 'min');
+          if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+          this.value = val > max ? max : val < min ? min : val;
+          $("#amount").val($("#slider").spinner("value") + "\xB0" + dlist[$("#slidermin").spinner("value")] + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+        });
+        $("#slidermin").on("spinchange", function(event, ui) {
+          var val = this.value,
+            $this = $(this),
+            max = $this.spinner('option', 'max'),
+            min = $this.spinner('option', 'min');
+          if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+          this.value = val > max ? max : val < min ? min : val;
+          this.value = dlist[$("#slidermin").spinner("value")]
+          $("#amount").val($("#slider").spinner("value") + "\xB0" + dlist[$("#slidermin").spinner("value")] + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+        });
+        $("#sliderdmin").on("spinchange", function(event, ui) {
+          var val = this.value,
+            $this = $(this),
+            max = $this.spinner('option', 'max'),
+            min = $this.spinner('option', 'min');
+          if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+          this.value = val > max ? max : val < min ? min : val;
+          $("#amount").val($("#slider").spinner("value") + "\xB0" + dlist[$("#slidermin").spinner("value")] + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
+        });
+        $("#sliderx").spinner({
+          min: 56,
+          max: 67,
+          step: 1,
+          spin: function(event, ui) {
+            $("#amount2").val(ui.value + "\xB0" + dlist[$("#slidermin2").spinner("value")] + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+          }
+        });
+        $("#sliderx").spinner("value", 58);
+        $("#slidermin2").spinner({
+          min: 00,
+          max: 59,
+          step: 1,
+          spin: function(event, ui) {
+            $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + dlist[ui.value] + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+          }
+        });
+        $("#slidermin2").spinner("value", 30);
+        $("#sliderdmin2").spinner({
+          min: 00,
+          max: 999,
+          step: 1,
+          spin: function(event, ui) {
+            $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + dlist[$("#slidermin2").spinner("value")] + "." + pad(ui.value, 2) + "W");
+          }
+        });
+        $("#sliderdmin2").spinner("value", 50);
+        $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + dlist[$("#slidermin2").spinner("value")] + "." + $("#sliderdmin2").spinner("value") + "W");
+        $("#sliderx").on("spinchange", function(event, ui) {
+          var val = this.value,
+            $this = $(this),
+            max = $this.spinner('option', 'max'),
+            min = $this.spinner('option', 'min');
+          if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+          this.value = val > max ? max : val < min ? min : val;
+          $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + dlist[$("#slidermin2").spinner("value")] + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+        });
+        $("#slidermin2").on("spinchange", function(event, ui) {
+          var val = this.value,
+            $this = $(this),
+            max = $this.spinner('option', 'max'),
+            min = $this.spinner('option', 'min');
+          if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+          this.value = val > max ? max : val < min ? min : val;
+          this.value = dlist[$("#slidermin2").spinner("value")]
+          $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + dlist[$("#slidermin2").spinner("value")] + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+        });
+        $("#sliderdmin2").on("spinchange", function(event, ui) {
+          var val = this.value,
+            $this = $(this),
+            max = $this.spinner('option', 'max'),
+            min = $this.spinner('option', 'min');
+          if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+          this.value = val > max ? max : val < min ? min : val;
+          $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + dlist[$("#slidermin2").spinner("value")] + "." + pad($("#sliderdmin2").spinner("value"), 2) + "W");
+        });
+
+        function pad(num, size) {
+          var s = num + "";
+          while (s.length < size) s = "0" + s;
+          return s;
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="wrapper">
+      <div id="page" style="width:800px;">
+        <div id="contentpane">
+          <h2>Tag Capture Form</h2>
+          <br />
+          <br /> - Mandatory fields are marked with * <br />
+          <br />
+          <br />
+          <div id="prepage">Data is being entered, please wait... <br />
+            <br />
+            <div id="animation"></div>
+          </div>
+          <form id="fo" name="myForm" action="" method="post" style="visibility: visible; border: solid; padding: 10px; border-radius: 15px;">
+            <pb>Please select the Region</pb>
+            <br />
+            <div style='clear: left'></div>
+            <div style="margin-left: 90px;">
+              <input type="radio" name="ssorg" id="ssorg-y" value="ss" /> Scotian Shelf
+            </div>
+            <br />
+            <pb>What was the Tag id? </pb>
+            <br /> * <input type="text" name="tid" id="tagid" style="color: blue; font-size: 11pt; width: 80px; margin-left: 83px;" /> (exa. 11344) <div id="nfg">
+              <br />
+              <py>This tag does not yet exist in your release data. <br />Enter your release data at <a href="tagentry2.html" target="_blank">RELEASE ENTRY PAGE</a>
+              </py>
+            </div>
+            <div style='clear: left'></div>
+            <br />
+            <pb>Tag Prefix?</pb>
+            <br />
+            <input type="text" name="tagprefix" id="tagprefix" style="color: blue; font-size: 11pt; width: 80px; margin-left: 90px;" />
+            <div style='clear: left'></div>
+            <br />
+            <div style="position:relative; float:left;">
+              <pb>Where did you capture this lobster?</pb>
+            </div>
+            <div style='clear: left'></div>
+            <div id="gmap" style="float:left; position:relative;"></div>
+            <div style='clear: left'></div>
+            <div id="ali" style="margin-bottom: 5px;">
+              <div style="float:left; margin-right:16px; position:relative; bottom:-5px;">* Latitude:</div>
+              <span>
+                <input id="slider" style="width:20px; font-size: 11pt;" />&deg; </span>
+              <span>
+                <input id="slidermin" style=" width:20px; font-size: 11pt; " /> . </span>
+              <span>
+                <input id="sliderdmin" style=" width:30px; font-size: 11pt;" /> ' </span>
+              <input type="text" name="lat" id="amount" style="border:none; font-size: 12pt; background:transparent; color: blue; " />
+            </div>
+            <div style="float:left; margin-right:2px; position:relative; bottom:-5px;">* Longitude:</div>
+            <span>
+              <input id="sliderx" style="width:20px; font-size: 11pt;" />&deg; </span>
+            <span>
+              <input id="slidermin2" style=" width:20px; font-size: 11pt;" /> . </span>
+            <span>
+              <input id="sliderdmin2" style=" width:30px; font-size: 11pt;" /> ' </span>
+            <input type="text" name="lon" id="amount2" style="border:none; font-size: 12pt; background:transparent; color: blue; " />
+            <div style='clear: left'></div>
+            <div id="nopos">If you do not know the position enter 46&deg00.00N 60&deg00.00W. In the future please record the position where the lobster was captured </div>
+            <br />
+            <pb>When did you catch this lobster?</pb>
+            <br />
+            <div style="float:left;"> * </div>
+            <div style="margin-left: 90px;">
+              <input type="text" name="date" id="datepicker" style="color: blue; font-size: 11pt; width: 120px;" />
+            </div>
+            <br />
+            <pb>How many fathoms of water was this lobster captured in?</pb>
+            <br />
+            <div style="margin-left: 90px;">
+              <input type = "text" name ="depth" id="depth" style="color: blue; font-size: 11pt;" /> (zero for unknown)
+            </div>
+            <br />
+            <pb>What was the name of the fishing vessel that this lobster was captured with?</pb>
+            <br />
+            <input type="text" name="ves" id="ves" style="color: blue; font-size: 11pt; width: 80px; margin-left: 90px;" />
+            <div style='clear: left'></div>
+            <br />
+            <pb>Was the lobster returned to the water with tag attached?</pb>
+            <br />
+            <div style="float:left;"> * </div>
+            <div style="margin-left: 90px;">
+              <input type="radio" name="radio-choice-2" id="radio-choice-y" value="choice-1" />
+              <label for="radio-choice-y">Yes</label>
+              <input type="radio" name="radio-choice-2" id="radio-choice-n" value="choice-2" />
+              <label for="radio-choice-n">No</label>
+              <input type="radio" name="radio-choice-2" id="radio-choice-u" value="choice-3" />
+              <label for="radio-choice-u">Unknown</label>
+            </div>
+            <br />
+            <br />
+            <pb>Please provide your information so that a report and reward can be sent!</pb>
+            <label for="person" style="margin-right: 40px;">*Name:</label>
+            <input id="person" name="per" style ="width: 300px;"/>
+            <br />
+            <label for="addresspicker_map" style="margin-right: 35px;">Address:</label>
+            <input id="addresspicker_map" name="add" style ="width: 300px;"/>
+            <br />
+            <label for="street_number" style="margin-right:  53px;">Street:</label>
+            <input id="street_number" name="str" style ="width: 300px;" />
+            <br />
+            <label for="route" style="margin-right:  50px;">Route:</label>
+            <input id="route" name="rou" style ="width: 300px;"/>
+            <br />
+            <label for="locality" style="margin-right:  54px;">Town:</label>
+            <input id="locality" name="loc" style ="width: 300px;"/>
+            <br />
+            <label for="administrative_area_level_1" style="margin-right:  31px;">Province:</label>
+            <input id="administrative_area_level_1" name="pro" style ="width: 300px;"/>
+            <br />
+            <label for="country" style="margin-right:  36px;">Country:</label>
+            <input id="country" name="cou" style ="width: 300px;"/>
+            <br />
+            <label for="poc" style="margin-right:  11px;">Postal Code:</label>
+            <input id="postal_code" name="poc" style ="width: 300px;"/>
+            <br />
+            <label for="ema" style="margin-right:  44px;">E-Mail:</label>
+            <input id="email" name="ema" style ="width: 300px;"/>
+            <br />
+            <label for="phoa" style="margin-right:  37px;">Phone 1:</label>
+            <input id="phonea" name="phoa" style ="width: 300px;"/>
+            <br />
+            <label for="phob" style="margin-right:  37px;">Phone 2:</label>
+            <input id="phoneb" name="phob" style ="width: 300px;"/>
+            <br />
+            <label for="affil" style="margin-right:  11px;">Affiliation:</label>
+            <input id="afi" name="afi" style ="width: 300px;"/>
+            <br />
+            <label for="fishinglfa" style="margin-right:  54px;">LFA:</label>
+            <input id="lfa" name="lfa" style ="width: 300px;"/>
+            <br />
+            <br /> Can you provide any additional comments? (temperature, animal health, etc.) <br />
+            <pb>Lobster Sex?</pb>
+            <br />
+            <input type="text" name="sex" id="sex" style="color: blue; font-size: 11pt; width: 80px; margin-left: 90px;" />
+            <br />
+            <pb>Carapace Length?</pb>
+            <br />
+            <input type="text" name="carapace_l" id="carapace_l" style="color: blue; font-size: 11pt; width: 80px; margin-left: 90px;" />
+            <br />
+            <div id="mf"></div>
+            <pb>Other Comments</pb>
+            <br />
+            <textarea id="comments" name="comments" rows="4" cols="50" style=" color:blue; font-size: 11pt;"></textarea>
+            <label></label>
+            <input id="dum" style="margin-right: 400px; float: right;" />
+            <br />
+            <label></label>
+            <input id="dum2" style="margin-right: 400px; float: right;" />
+            <br />
+            <div id='buttons'>
+              <input type="button" name="submit" class="f" id="submit" value="Submit" onClick="return checkenter(this.form)" style="height:40px; width:70px; color:blue; font-size: 11pt;">
+            </div>
+            <br>
+            <br>
+            <a href="delete_capture_tags.html" style="color: black;" target="_blank">Delete captured tags here.</a>
+            <br>
+            <br>
+          </form>
+        </div>
+        <br class="clearfix" />
+        <div id="sidebar">
+          <textarea rows="10" name="mesbak" id="mesbak">
+MESSAGE CONSOLE
+</textarea>
+          <br />
+          <br />
+        </div>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <br class="clearfix" />
+        <div id="footer"> Atlantic Lobster </div>
+      </div>
+    </div>
+  </body>
+</html>

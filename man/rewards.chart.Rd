@@ -4,7 +4,7 @@
 \alias{rewards.chart}
 \title{rewards.chart}
 \usage{
-rewards.chart(name = "", data = NULL, keep_anon = FALSE)
+rewards.chart(name = "", data = NULL)
 }
 \arguments{
 \item{name}{The name of the person}

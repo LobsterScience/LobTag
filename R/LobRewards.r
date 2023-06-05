@@ -56,19 +56,24 @@ process_returns_for_web = function(){
 #' @export
 rewards.loop.function = function(){
   perlist = generate.reward.data()
-  #markdownfilepath = paste("C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/","knit_rewards.Rmd", sep = "")
-  #r_drive_filepath <- "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/App files/"
-  common_files_path <- "C:/bio/"
-  markdownfilepath = paste(common_files_path,"knit_rewards.Rmd", sep = "")
-  
+
+  markdownfilepath = tag.markdown.location
+  #markdownfilepath = "C:/bio/LobTag/knit_rewards2.Rmd"
+  #k = 1
   for(k in 1:length(perlist)){
-    anon_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only/"
-    email_path = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/inst/extdata/emails_attachments/"
-    render(input = markdownfilepath,
+    #anon_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only/"
+    #email_path = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/inst/extdata/emails_attachments/"
+    email_path = working.emails.location
+    
+    #if we put the fishername with a ".pdf" on the end of it before passing it
+    #to the markdown function we can create filenames with spaces in them which will match
+    #the formatting of the fishername in the oracle table so we don't have to do any extra
+    #steps when looking up fisher data from the file names later on.
+    pdf_file_name = paste(email_path, perlist[[k]]$name, ".pdf", sep = "")
+    
+    rmarkdown::render(input = markdownfilepath,
                       output_format = 'pdf_document',
-                      output_file = paste(email_path,
-                                          perlist[[k]]$name,
-                                          sep = ""),
+                      output_file = pdf_file_name,
                       params = list(i = k, perlist = perlist))
     
     #temporary for now, better to use an anon argument in the rewards chart function.
@@ -89,7 +94,7 @@ rewards.loop.function = function(){
 
 #' @title  generate.reward.data
 #' @description  Gather Reward data in preparation for document creation with rewards.knit.document() . 
-#' @import ROracle DBI stringi
+#' @import ROracle DBI stringi lubridate
 #' @export
 generate.reward.data = function(region = "ScotianShelf"){
   # Letter text and formatting, be careful when changing text to be aware of return line formatting
@@ -102,14 +107,13 @@ generate.reward.data = function(region = "ScotianShelf"){
   
   da = NULL
   
-  #initialise lobster databases
+  #initialize lobster databases
   lbiodb = paste("LOBSTER",".","LBT_BIO", sep = "")
   captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
   tripdb = paste("LOBSTER",".","LBT_TRIP", sep = "")
-  sampdb = paste("LOBSTER",".","LBT_TRIP", sep = "")
   peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
+  pathdb = paste("LOBSTER",".","LBT_PATH", sep = "")
   
-
   # new lobster code
   query = paste("SELECT LOBSTER.LBT_BIO.TAG_ID,
                 LOBSTER.LBT_BIO",".SAMPLE_NUM,
@@ -122,7 +126,7 @@ generate.reward.data = function(region = "ScotianShelf"){
                 LOBSTER.LBT_CAPTURE",".REWARDED,
                 LOBSTER.LBT_TRIP",".TRIP_ID,
                 LOBSTER.LBT_TRIP",".STATSAREA AS STATSAREA1,
-                LOBSTER.LBT_TRIP",".YEAR      AS YEAR1,
+                LOBSTER.LBT_TRIP",".YEAR AS YEAR1,
                 LOBSTER.LBT_TRIP",".CAPTAIN,
                 LOBSTER.LBT_TRIP",".REPORTED,
                 LOBSTER.LBT_TRIP",".RELEASE_DATE,
@@ -134,7 +138,8 @@ generate.reward.data = function(region = "ScotianShelf"){
                 LOBSTER.LBT_PEOPLE",".CIVIC,
                 LOBSTER.LBT_PEOPLE",".TOWN,
                 LOBSTER.LBT_PEOPLE",".PROV,
-                LOBSTER.LBT_PEOPLE",".POST
+                LOBSTER.LBT_PEOPLE",".POST,
+                LOBSTER.LBT_PEOPLE",".LFA
                 FROM LOBSTER.LBT_CAPTURE","
                 INNER JOIN LOBSTER.LBT_BIO","
                 ON LOBSTER.LBT_BIO",".TAG_ID = LOBSTER.LBT_CAPTURE",".TAG
@@ -160,14 +165,19 @@ generate.reward.data = function(region = "ScotianShelf"){
   
   da = dx
   
-  da$CAPTURE_DATE = ymd(da$CAPTURE_DATE)
-  da$RELEASE_DATE = ymd(da$RELEASE_DATE)
+  da$CAPTURE_DATE = lubridate::ymd(da$CAPTURE_DATE)
+  da$RELEASE_DATE = lubridate::ymd(da$RELEASE_DATE)
   
   da = da[order(da$CAPTURE_DATE),] #Proper history order for positional reformatting
   da = da[order(da$TAG_ID),] #Proper tag order for positional reformatting
   #loop through and set position and dates of previous release location to 
   #the proper release not the sample release
   #i=1
+  
+  ##### only go through tags that have paths
+  #TAG_ID from paths
+  
+  #############
   
   for(i in 1:nrow(da)){
     if(da$TAG_ID[i] == previd){
@@ -178,23 +188,29 @@ generate.reward.data = function(region = "ScotianShelf"){
     previd = da$TAG_ID[i] 
   }
   perlist = list() #set up list to hold relevant data
-  
-  #Loop thru each person who needs to be rewarded.
   persplit = split(da, da$NAME)
-  #i = 1
+  
+#for troubleshooint a specific person this will print out all the i's and the corresponding name
+# for(i in 1:length(persplit)){
+#   per = list()
+#   per$data = persplit[[i]]
+#   per$name = per$data$NAME[1]
+#   per$email = per$data$EMAIL
+#   print(paste(i, per$name, sep = " " ))
+# }
+  #i = 4
+  #Loop thru each person who needs to be rewarded.
   for(i in 1:length(persplit)){
     if(i < 3000){ #Test toggle so full report isnt generated while testing ex change 3000 to 3
+      create_letter = TRUE #default letter creation to true, don't update fisher if their tags have been caught
       per = list()
       per$data = persplit[[i]]
       per$name = per$data$NAME[1]
       per$email = per$data$EMAIL
-      ############################################################################
-      # IF EMAIL == BLANK CANNOT RETURN TAG, MESSAGE TO WEBUI AND LETTER GETS
-      # SENT TO 'UNSENT'
-      ############################################################################
-      #print(per$name)
       #Add all relevant tag data to persons frame
       per$matcheddata = da[which(da$TAG_ID %in% per$data$TAG_ID),]
+      #if this name has been completely rewarded, don't go into the loop
+      #if(per$name != 'unknown' & per$data$REWARDED != 'Y'){
       if(per$name != 'unknown'){
         #Following id for code folding to exclude reading letter creation step
         if(TRUE){  
@@ -202,13 +218,16 @@ generate.reward.data = function(region = "ScotianShelf"){
           per$paraA = getBetween(lettertxt, "PARAGRAPH A")
           per$paraB = getBetween(lettertxt, "PARAGRAPH B")
           per$paraB = sub("<name>", per$name, per$paraB)
+          #new paragraph for hat pickup locations
+          per$pickup = getBetween(lettertxt, "PARAGRAPH pickup")
           if(length(unique(per$data$TAG_ID))>1){
             per$paraB = gsub("<tag/tags>", "tags", per$paraB)
           }else{
             per$paraB = gsub("<tag/tags>", "tag", per$paraB)
           }
           if(all(per$data$REWARDED == "Y")){
-            per$mytagcapturedbutihavenoreturns = getBetween(lettertxt, "PARAGRAPH mytagcapturedbutihavenoreturns" ) 
+            per$mytagcapturedbutihavenoreturns = getBetween(lettertxt, "PARAGRAPH mytagcapturedbutihavenoreturns" )
+            create_letter = FALSE #don't create letter if this fisher hasn't returned anything
           }else{
             per$mytagcapturedbutihavenoreturns = ""
           }
@@ -233,6 +252,7 @@ generate.reward.data = function(region = "ScotianShelf"){
           cb = 0
           ca = 0
           utid = unique(per$data$TAG_ID)
+          #k = 1
           for(k in 1:length(utid)){
             cb = max(cb, length(which(per$matcheddata$CAPTURE_DATE[which(per$matcheddata$TAG_ID == utid[k])] <  per$data$CAPTURE_DATE[which(per$data$TAG_ID == utid[k])])))
             if(cb > 0) capbefore = T
@@ -293,29 +313,47 @@ generate.reward.data = function(region = "ScotianShelf"){
           }
           if(all(per$data$RELCODE == "2")){
             per$notreleased = getBetween(lettertxt, "PARAGRAPH notreleased" )
-            #per$notreleased = getBetween(lettertxt, "PARAGRAPH released")
           }else{
             per$notreleased = ""
           }
           if(all(per$data$RELCODE == "3")){
             per$unknownrel = getBetween(lettertxt, "PARAGRAPH unknownrel" )
-            #per$notreleased = getBetween(lettertxt, "PARAGRAPH released")
           }else{
-            per$notreleased = ""
+            #per$notreleased = ""
+            per$unknownrel = ""
           }
-          if( per$released == "" & per$notreleased == "" & per$notreleased == ""){
+          #if( per$released == "" & per$notreleased == "" & per$notreleased == ""){
+          if(per$released == "" & per$notreleased == "" & per$unknownrel == ""){
             per$mixedrelret = getBetween(lettertxt, "PARAGRAPH mixedrelret" )
           }else{
             per$mixedrelret = ""
           }
+          
+          #if(is.null(per$data$LFA)){}
+          if(all(per$data$LFA == "27")){
+            per$pickup = gsub("<community>", "As a token of our appreciation for your participation in the lobster tagging program, we have a Lobster Science hat for you. It can be picked up at the office for the Cape Breton Fish Harvesters at your convenience.", per$pickup)
+          } else if(all(per$data$LFA %in% c("28", "29", "30"))){
+            per$pickup = gsub("<community>", "As a token of our appreciation for your participation in the lobster tagging program, we have a Lobster Science hat for you. It can be picked up at the office for the Richmond County Inshore Fishermen's Association at your convenience.", per$pickup)
+          } else if(all(per$data$LFA == "31A")){
+            per$pickup = gsub("<community>", "As a token of our appreciation for your participation in the lobster tagging program, we have a Lobster Science hat for you. It can be picked up at the office for the Guysborough County Inshore Fishermen's Association at your convenience. ", per$pickup)
+          } else if(all(per$data$LFA == "31B")){
+            per$pickup = gsub("<community>", "As a token of our appreciation for your participation in the lobster tagging program, we have a Lobster Science hat for you. It can be picked up at the office for your respective association (Eastern Shore Fisherman's Protective Association or Guysborough County Inshore Fishermen's Association) at your convenience.", per$pickup)
+          } else if(all(per$data$LFA == "32")){
+            per$pickup = gsub("<community>", "As a token of our appreciation for your participation in the lobster tagging program, we have a Lobster Science hat for you. It can be picked up at the office for the Eastern Shore Fisherman's Protective Association at your convenience.", per$pickup)
+          }
         }
+        
+        per$consider = getBetween(lettertxt, "PARAGRAPH consider")
         per$final = getBetween(lettertxt, "PARAGRAPH final" )
         per$end = getBetween(lettertxt, "PARAGRAPH end" )
+        per$mapdisclaimer = getBetween(lettertxt, "PARAGRAPH mapdisclaimer")
         
-        #Generates charts for this person and returns a list of file locations to them
-        per$charts = rewards.chart(name = per$name, data = per$matcheddata)
-        
-        perlist[[length(perlist)+1]] = per
+        if(create_letter){
+          #Generates charts for this person and returns a list of file locations to them
+          per$charts = rewards.chart(name = per$name, data = per$matcheddata)
+          
+          perlist[[length(perlist)+1]] = per
+        }
       }
     } #End person loop 
   } #End test toggle
@@ -327,7 +365,7 @@ generate.reward.data = function(region = "ScotianShelf"){
 #' @param name The name of the person
 #' @param data The data to chart
 #' @import rgeos sp spatstat shadowtext ggplot2 ggmap ggthemes ggrepel geosphere RStoolbox raster
-rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
+rewards.chart = function(name = "", data = NULL){
   
   # The lable colors that are later randomized, opted for the following colors that are color blind friendly
   collist <- c("#E69F00", "#56B4E9", "#009E73", 
@@ -340,15 +378,16 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
   #loop thru each tag series to define boundaries and create geometeries 
   
   #i = 1 #for testing...
+  #length(tx) is number of tags, therefor number of maps
+  #each map will be saved to 3 different locations: 1 working, 1 anon, 1 to save
   for(i in 1:length(tx)){
     collist = collist[sample.int(7, 7)]
     curt = tx[[i]]
-    #not doing a path.
     path = get.pathdata.tid(tid = curt$TAG_ID[1])
     path = path[order(as.numeric(path$CID), as.numeric(path$POS)),]
     path$LON = as.numeric(path$LON)
     path$LAT = as.numeric(path$LAT)
-    globalextent = extent(min(path$LON), max(path$LON), min(path$LAT), max(path$LAT))
+    globalextent = raster::extent(min(path$LON), max(path$LON), min(path$LAT), max(path$LAT))
     #globalextent = extent(-60.2216, -60.2048, 45.718, 45.719) #extent is part of the raster package...
     
     linlats = cbind(curt$RELLAT)
@@ -386,7 +425,8 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
                 intersects = T
               }
             }
-            if(!intersects) clisind = j #if we get here tag can be combined at this location
+            #commented out to keep all tags on their own chart
+            #if(!intersects) clisind = j #if we get here tag can be combined at this location
           }
         }
       }
@@ -402,7 +442,7 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
       
       clist[[clisind]] = temp
       # If we did not find an good map to add to we need to add a new entry  
-    }else{
+    } else{
       #clist[[clisind]] = list(bbox.poly = bbox.polyc, linelist = list(linestring), pathlist = "", datalist = list(curt), globextent = globalextent)
       clist[[clisind]] = list(bbox.poly = bbox.polyc, linelist = list(linestring), pathlist = list(path), datalist = list(curt), globextent = globalextent)
     }
@@ -410,6 +450,7 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
   # Now that combinations are made where desired, set up geographies and 
   # plotting constraints for each map in persons clist
   #i = 1
+  
   for(i in 1:length(clist)){
     mdata = clist[[i]]
     
@@ -453,14 +494,18 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     
     #rasters for plot backgrounds
     #Git hub dosnt allow large files user will need to have these stored charts folder
-    l1 = brick(file.path('c:', 'bio', '801_LL_WGS84.tif'))
-    l2 = brick(file.path('c:', 'bio', 'atl_merged.tif'))
+    #C:\bio.data\bio.lobster\data\tagging
+    #l1 = brick(file.path('c:', 'bio', '801_LL_WGS84.tif'))
+    #l2 = brick(file.path('c:', 'bio', 'atl_merged.tif'))
+    
+    l1 = brick(file.path('c:', 'bio.data', 'bio.lobster', 'data', 'tagging', '801_LL_WGS84.tif'))
+    l2 = brick(file.path('c:', 'bio.data', 'bio.lobster', 'data', 'tagging', 'atl_merged.tif'))
     
     #Expand region
-    xmin = xmin - ylen/2  
-    xmax = xmax + ylen/2
-    ymin = ymin - ylen/2  
-    ymax = ymax + ylen/2
+    xmin = xmin - ylen/4  
+    xmax = xmax + ylen/4
+    ymin = ymin - ylen/4  
+    ymax = ymax + ylen/4
     ylen = ymax-ymin
     xlen = xmax-xmin
     
@@ -508,11 +553,43 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     
     #it doesn't make sense to have if-anon here, as every map will have to have an anon
     #version. Best to loop through twice
-    if(keep_anon == TRUE){
-      tempname = name
-      name = paste("Tag: ",reldata$TAG_ID,sep= "")
-    }
+    # if(keep_anon == TRUE){
+    #   tempname = name
+    #   name = paste("Tag: ",reldata$TAG_ID,sep= "")
+    # }
     
+    # map_counter = 1 working directory
+    # map_counter = 2 saved to r drive
+    # map_counter = 3 anonymous r drive
+    
+    # for(map_counter in 1:3){
+    #   if(map_counter == 1){
+    #     map_path = working.maps.location
+    #     savename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = "")
+    #     #outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+    #   } else if(map_counter == 2) {
+    #     map_path = save.maps.location
+    #     savename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = "")
+    #   } else if(map_counter == 3) {
+    #     name = paste("Tag: ",reldata$TAG_ID,sep= "")
+    #     map_path = anon.maps.location
+    #     savename = paste(gsub(" ", "", reldata$TAG_ID)," ",reldata$CAPTURE_DATE,"-", i, ".pdf", sep = "")
+    #   }
+    #}
+    anon_or_not <- c(FALSE, TRUE)
+    for(keep_anon in anon_or_not){
+      #keep_anon = TRUE
+      print(keep_anon)
+    
+    if(keep_anon == TRUE){
+      anon_temp_name = name
+      name = reldata$TAG_ID
+      you_caught_lobster = "Lobster Captured: "
+      other_caught_lobster = "Lobster Captured: "
+    } else {
+      you_caught_lobster = "You Caputured: "
+      other_caught_lobster = "Other Fisher Captured: "
+    }
     mp = ggRGB(l1, r=1, g=2, b=3, maxpixels = 800000, ext = e, ggObj = T)+
       ggtitle(paste(name, i, sep = "-")) + xlab("Longitude") + ylab("Latitude")+
       ggsn::scalebar(x.min = xmin, x.max = xmax, y.min = ymin, y.max = ymax, dist_unit= "km", location = "bottomleft", anchor = c(x = xmin+2*hei, y=ymin+5*hei), transform = T, dist = dist, st.size=4, height=hei, model = 'WGS84')+
@@ -528,14 +605,25 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
             axis.text.y = element_text( angle = 0, size=15))
     
     #Add movement paths for each tag in current plot
-    #j=1
+    #j=2
     for(j in 1:length(mdata$pathlist)){
       pl = mdata$pathlist[[j]]
       #loop through each pach segment
+      #l = 1
       for(l in unique(pl$CID)){
         seg = pl[which(pl$CID == l),]
+        #if start and end points are so close together, don't show an arrow...
+        distancedf = seg[seg$POS == 1 | seg$POS == max(seg$POS),]
+        path_distance = distm(c(distancedf$LON[1], distancedf$LAT[1]), c(distancedf$LON[2], distancedf$LAT[2]), fun = distHaversine)
+        if(path_distance < 100){
+          #print(paste("short path: ", name, sep = ""))
+          alpha = 0
+        } else {
+          alpha = 0.85
+        }
+        
         mp = mp+geom_path(data=seg, aes(x = as.numeric(LON), y = as.numeric(LAT)),
-                          arrow = arrow(length = unit(0.2, "cm")), colour = 'red', alpha = 0.85, size = 1.7)
+                          arrow = arrow(length = unit(0.5, "cm")), colour = 'red', alpha = alpha, size = 1.0)
       }
     }
     # Randomized the label colors, make each plot look a bit more unique
@@ -546,15 +634,22 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     coords = NULL
     #Create a dataframe of all labels for this plot. This is needed for 
     #so that the label repel works on all labels for this plot
+    #j = 2
     for(j in 1:length(mdata$datalist)){
       reldata = mdata$datalist[[j]][1,]
       reldata$RELLON = as.numeric(reldata$RELLON)
       reldata$RELLAT = as.numeric(reldata$RELLAT)
-      labelframe = rbind(labelframe, cbind(reldata$RELLON, reldata$RELLAT, collist[j],  paste("Tag:", reldata$TAG_ID," ",as.character(reldata$RELEASE_DATE), sep="")))
+      labelframe = rbind(labelframe, cbind(reldata$RELLON, reldata$RELLAT, collist[j],  paste("Tag: ", reldata$TAG_ID," ",as.character(reldata$RELEASE_DATE), sep="")))
       mdata$datalist[[j]]$label = as.character(mdata$datalist[[j]]$CAPTURE_DATE)
-      mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME == name)] = paste("You Captured: ", mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME == name)], sep = "") 
+      mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME == name)] = paste(you_caught_lobster, mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME == name)], sep = "")
+      mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME != name)] = paste(other_caught_lobster, mdata$datalist[[j]]$label[which(mdata$datalist[[j]]$NAME != name)], sep = "")
       labelframe = rbind(labelframe, cbind(as.numeric(mdata$datalist[[j]]$CAPLON), as.numeric(mdata$datalist[[j]]$CAPLAT), collist[j], as.character(mdata$datalist[[j]]$label)))
     }
+    
+
+    
+    
+    
     labelframe = as.data.frame(labelframe)
     names(labelframe) = c("x", "y","colID", "lab")
     labelframe$ID = 1:nrow(labelframe) 
@@ -562,6 +657,13 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     labelframe$y = as.numeric(as.character(labelframe$y))
     labelframe$colID = as.character(labelframe$colID)
     labelframe$lab = as.character(labelframe$lab)
+    
+    #add points to plot from other captures.... (use label plot df)
+    mp = mp + geom_point(data = labelframe, aes(x = x, y = y), color = "black")
+    
+    #if only no name tags are of interest to make points for make new df from labelframe (you'll have to match the label column with 'other fisher captured')
+    
+    
     #Add labels to main plot
     mp = mp+geom_label_repel(data=labelframe, aes(x = x, y = y, label = lab),
                              fill = alpha(labelframe$colID,0.5), fontface = "bold",                        
@@ -569,7 +671,7 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
                              family = "Helvetica",
                              box.padding = unit(0.35, "lines"),
                              point.padding = unit(0.5, "lines"))
-    
+
     #Inset plot
     ip = ggplotGrob(
       ggRGB(l2, r=1, g=2, b=3, maxpixels = 100000, ext = e2, ggObj = T)+
@@ -594,15 +696,42 @@ rewards.chart = function(name = "", data = NULL, keep_anon = FALSE){
     #tempath is the working copy for now
     #norm_path will have tag data and name
     #anon_path will have tag data only
-    temppath = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/inst/extdata/maps"
-    norm_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags and Names"
-    anon_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only"
-    ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = temppath, plot = g3, width = 11, height = 10)
-    ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = norm_path, plot = g3, width = 11, height = 10)
-    ggsave(filename = paste(gsub(" ", "", reldata$TAG_ID)," ",reldata$CAPTURE_DATE,"-", i, ".pdf", sep = ""), path = anon_path, plot = g3, width = 11, height = 10)
+    
+    #temppath = "C:/bio/LobTag/temp_maps"
+    #norm_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags and Names"
+    #anon_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only"
+    # ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = temppath, plot = g3, width = 11, height = 10)
+    # ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = norm_path, plot = g3, width = 11, height = 10)
+    # ggsave(filename = paste(gsub(" ", "", reldata$TAG_ID)," ",reldata$CAPTURE_DATE,"-", i, ".pdf", sep = ""), path = anon_path, plot = g3, width = 11, height = 10)
     #ggsave(filename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), path = fn, plot = mp, width = 11, height = 10)
-    #list of maps locations on disk
-    outlist = c(outlist, paste(temppath, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+    if(!keep_anon){
+      
+      map_path = working.maps.location
+      savename = paste(gsub(" ", "", name),"-", i, ".pdf", sep = "")
+      ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
+    
+      #save to r directory with name, tag number and date.
+      savename = paste(gsub(" ", "", name),"-", reldata$TAG_ID, " ", as.character(Sys.Date()),".pdf", sep = "")
+      map_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags and Names"
+      ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
+      outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+      }
+    
+    if(keep_anon){
+      #save anonymously to r drive
+      savename = paste(name, " ", as.character(Sys.Date()),".pdf", sep = "")
+      map_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only"
+      ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
+      name = anon_temp_name
+    }
+    
+    #outlist is for working copy of map
+    #outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
+    
+    
+    }
+    
+    #outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
   }
   return(outlist)
 }
@@ -616,53 +745,54 @@ rewards.letter.fill = function(){
   <PARAGRAPH A>Lobster Ecology & Assessment Team
   DFO Science  
   Dartmouth, NS</PARAGRAPH A>
-    <PARAGRAPH mytagcapturedbutihavenoreturns>  <name>,  
+  <PARAGRAPH mytagcapturedbutihavenoreturns>  <name>,  
   \\newline  
-  Thank you for participating in the lobster tagging program. I thought you would be interested to know that a lobster you had previously released was captured again and information sent in. This information is shown in a chart provided. Recaptures such as these will help us better track the movement of lobsters across the Scotian shelf.    
-  </PARAGRAPH mytagcapturedbutihavenoreturns>
-    <PARAGRAPH B><name>,  
+  Thank you for participating in the lobster tagging program. I thought you would be interested to know that a lobster you had previously released was captured again and information sent in. This information is shown in a chart provided. Recaptures such as these will help us better track the movement of lobsters across the Scotian shelf.</PARAGRAPH mytagcapturedbutihavenoreturns>
+  <PARAGRAPH B><name>,  
   \\newline  
-  Thanks for returning the lobster <tag/tags> caught last season. I have included  a chart showing the release and recapture positions for the <tag/tags>. The information provided by such tagging recaptures is helpful in determining the movement of lobster throughout the Scotian Shelf. </PARAGRAPH B>
-    <PARAGRAPH info>  
-    \\newline  
+  Thanks for reporting the lobster <tag/tags> caught last season. A chart showing the release and all recapture positions for the <tag/tags> is included. The information provided by tagging recaptures is helpful in determining the movement of lobster throughout the Scotian Shelf. </PARAGRAPH B>
+  <PARAGRAPH info>  
+  \\newline  
   The tagged lobster you caught <was/were/wereall> tagged in the <yeartagged/yearstagged/season/seasons>.</PARAGRAPH info>
-    <PARAGRAPH capturedbefore>  
-    \\newline  
-  <onebefore/somebefore> of the tagged lobster you caught <wasb/wereb> captured before and released. Helpful knowledge is gained from captures such as these, especially if they are once again returned to the water. The data for this is shown in the charts provided. </PARAGRAPH capturedbefore>
-    <PARAGRAPH capturedafter>  
-    \\newline  
-  <oneafter/someafter> of the tagged lobster you caught and released in the past <wasa/werea> captured this season. Thank you for releasing <this/these> lobster. This knowledge is very helpful in tracking the movements of lobster The data for this is shown in the charts provided.</PARAGRAPH capturedafter>
-    <PARAGRAPH capturedbeforeandafter>  
-    \\newline  
-  <onebefore/somebefore> of the tagged lobster you caught <wasb/wereb> captured before and released. As well, <oneafter/someafter> of the tagged lobster you caught and released in the past <wasa/werea> captured this season. Helpful knowledge is gained from captures such as these, especially if they are once again returned to the water. This knowledge is very helpful in tracking the movements of lobster. The data for this is shown in the charts provided.</PARAGRAPH capturedbeforeandafter>
-    <PARAGRAPH notreleased>  
-    \\newline  
-  In the future, please consider releasing tagged lobster back to the water alive after recording the tag number. We hope that additional knowledge will be gained by tracking subsequent recaptures of individual lobster over time. </PARAGRAPH notreleased>
-    <PARAGRAPH released>  
-    \\newline  
-  Thank you for releasing tagged lobster back to the water. We hope that additional knowledge will be gained by tracking subsequent recaptures of individual lobster over time. </PARAGRAPH released>
-    <PARAGRAPH mixedrelret>  
-    \\newline  
-  Thank you for releasing some of the tagged lobster back to the water. We hope that additional knowledge will be gained by tracking subsequent recaptures of individual lobster over time. In the future, please consider releasing tagged lobster back to the water.  </PARAGRAPH mixedrelret>
-    <PARAGRAPH unknownrel>  
-    \\newline  
-  It was unclear whether you released or retained the tagged lobster. In the future please include this data along with the other relevant data if possible. Additional knowledge will be gained by tracking subsequent recaptures of individual lobster over time. </PARAGRAPH unknownrel>
-    <PARAGRAPH final>  
-    \\newline  
-  I have included a one page information sheet on our tagging program. On the reverse side of this sheet is a form which can easily be used to record all required information on any tagged lobster you may catch in the future. This entire form can be mailed to DFO Science at the end of the lobster season. </PARAGRAPH final>
-    <PARAGRAPH end> 
-    \\newline  
-  Thanks for your help.  
+  <PARAGRAPH capturedbefore>  
+  \\newline
+  <onebefore/somebefore> of the tagged lobster you caught <wasb/wereb> captured before and released.</PARAGRAPH capturedbefore>
+  <PARAGRAPH capturedafter>
+  \\newline
+  \\newline
+  <oneafter/someafter> of the tagged lobster you caught and released in the past <wasa/werea> captured this season.</PARAGRAPH capturedafter>
+  <PARAGRAPH capturedbeforeandafter>
+  \\newline
+  <onebefore/somebefore> of the tagged lobster you caught <wasb/wereb> captured before and released. As well, <oneafter/someafter> of the tagged lobster you caught and released in the past <wasa/werea> captured this season.</PARAGRAPH capturedbeforeandafter>
+  <PARAGRAPH consider>
+  \\newline
+  \\newline
+  For future tagged lobster recaptures, please let us know if they are released or retained. Additional knowledge will be gained by tracking subsequent recaptures of individual lobsters over their lifespan.</PARAGRAPH consider>
+  <PARAGRAPH pickup>
+  \\newline
+  \\newline
+  <community>
+  </PARAGRAPH pickup>
+  <PARAGRAPH notreleased>If you are interested in participating in tagging lobsters at the close of the commercial season in your area, please send an email to lobtags@gmail.com. </PARAGRAPH notreleased>
+  <PARAGRAPH released>If you are interested in participating in tagging lobsters at the close of the commercial season in your area, please send an email to lobtags@gmail.com. </PARAGRAPH released>
+  <PARAGRAPH mixedrelret>If you are interested in participating in tagging lobsters at the close of the commercial season in your area, please send an email to lobtags@gmail.com. </PARAGRAPH mixedrelret>
+  <PARAGRAPH unknownrel>If you are interested in participating in tagging lobsters at the close of the commercial season in your area, please send an email to lobtags@gmail.com. </PARAGRAPH unknownrel>
+  <PARAGRAPH final>  
   \\newline  
-  \\newline  
-  \\newline  
+  I have included a one page information sheet on our tagging program. On the reverse side of this sheet is a form which can easily be used to record all required information on any tagged lobster you may catch in the future. This entire form can be sent to DFO Science at the end of the lobster season. </PARAGRAPH final>
+  <PARAGRAPH end>
+  \\newline
+  \\newline
+  Thanks for your help.
+  \\newline
+  \\newline
   Ben Zisserson
   \\newline
   (902) 222-5211
   \\newline
-  Ben.Zisserson@dfo-mpo.gc.ca
-  
-  </PARAGRAPH end>"
+  Ben.Zisserson@dfo-mpo.gc.ca</PARAGRAPH end>
+  <PARAGRAPH mapdisclaimer>
+  * Lobster positions very near the coast may appear to be on land due to map resolution.</PARAGRAPH mapdisclaimer>"
   
   return(lettertxt)
 }

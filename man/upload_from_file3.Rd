@@ -10,5 +10,5 @@ upload_from_file3(myfile)
 note to use will be read in web interface
 }
 \description{
-upload_from_file3
+parses data, error check and sends to sample_ent function
 }

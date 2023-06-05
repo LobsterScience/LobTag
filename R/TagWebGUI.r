@@ -1,6 +1,7 @@
 #' @title upload_from_file3
 #' @import dplyr readxl
 #' @return note to use will be read in web interface
+#' @description parses data, error check and sends to sample_ent function
 #' @export
 upload_from_file3 <- function(myfile){
   #this function is called by readcsvnew2 in 'LobTagging.r'
@@ -11,23 +12,55 @@ upload_from_file3 <- function(myfile){
   #initilize user message
   out = ""
   
-  #this was left over from a debug, just gonna leave it even though it's a bit redundant
+  #data read from CSV, multiple steps for debugging
   my_data = read.csv(myfile)
   my_new_Data <- my_data
+  test_data  <- my_data
   
+  #format really shouldn't change, but this will help you drop unused columns in case
+  #you want to batch upload data from a spreadsheet that isn't the template
+  
+  #drop_columns <- c("Comments", "lat.dd.dd", "lon.dd.dd", "date2", "Lat", "Lon", "Sampler.3", "Claw.lost.in.trap")
+  #after_dropped_columns = test_data[,!(names(test_data) %in% drop_columns)]
+  #test_data = after_dropped_columns
+  
+  #data file doesn't hold any calculations.
+  #decimal degrees and degrees minutes formatting done here
+  test_data$latddmm.mm = test_data$Lat.Degrees * 100 + test_data$Lat.Minutes
+  test_data$londdmm.mm = test_data$Lon.Degrees * 100 + test_data$Lon.Minutes
+  
+  test_data$latdd.dd = test_data$Lat.Degrees + test_data$Lat.Minutes / 60
+  test_data$londd.dd = test_data$Lon.Degrees + test_data$Lon.Minutes / 60
+  
+  #date column isn't 100% necessary but it's a good indication if things are going wrong
+  test_data$Date = paste(test_data$Day, test_data$Month, test_data$Year, sep = "/")
+  
+  my_new_Data <- test_data
+
   #removed lat and lon columns (names has to be the same width as data)
-  all_names_new = c("Vessel", "Port", "Captain",	"LFA",	"Affiliation",	"Sampler",	"Sampler 2",	"Sampler 3", "Tag Prefix",	"Tag Num",	"Tag Color",	"Carapace Length",	"Sex",	"Shell",	"Claw",	"V-Notch",	"Claw lost in trap",	"Day",	"Month", "Year",	"Date",	"Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes",	"Comments",	"latdd.dd",	"londd.dd", "date2")
+  #I've re-arranged the lat/lon calculations above so the order is only
+  #correct for the FSRS list here.
   
-  names(my_new_Data) = all_names_new
+  #all_names_new = c("Vessel", "Port", "Captain",	"LFA",	"Affiliation",	"Sampler",	"Sampler 2",	"Sampler 3", "Tag Prefix",	"Tag Num",	"Tag Color",	"Carapace Length",	"Sex",	"Shell",	"Claw",	"V-Notch",	"Claw lost in trap",	"Day",	"Month", "Year",	"Date",	"Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes",	"Comments",	"latdd.dd",	"londd.dd", "date2")
+  #all_names_new2 = c("Vessel", "Captain", "Port", "LFA", "Sampler", "Sampler 2", "Affiliation", "Day",	"Month", "Year", "Tag Prefix",	"Tag Color", "Tag Num",	"Carapace Length",	"Sex",	"Shell", "Claw", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes")
+  all_names_new_test = c("Vessel", "Captain", "Port", "LFA", "Sampler", "Sampler 2", "Affiliation", "Day",	"Month", "Year", "Tag Prefix",	"Tag Color", "Tag Num",	"Carapace Length",	"Sex",	"Shell", "Claw", "V-Notch", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes", "latddmm.mm", "londdmm.mm", "latdd.dd", "londd.dd", "Date")
+  #all_names_FSRS = c("Vessel", "Port", "Captain", "LFA", "Affiliation", "Sampler", "Sampler 2", "Tag Prefix","Tag Num",	"Tag Color", 	"Carapace Length",	"Sex",	"Shell", "Claw","V-Notch", "Day",	"Month", "Year","Date", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes", "latddmm.mm", "londdmm.mm", "latdd.dd", "londd.dd")
+  
+  #old df named columns
+  #names(my_new_Data) = all_names_new
+  #names(my_new_Data) = all_names_new2
+  
+  #new template data
+  names(my_new_Data) = all_names_new_test
+  
+  #all of the data should be in each upload
+  #bdata and sdata can be mined if format is correct.
   bdata_keep = c("Tag Num","Tag Color","Carapace Length","Sex","Shell","Claw","V-Notch")
   
-  #do an error check in here, data should be in a certain format.
   #other error checks we could do?
-  #lat/lon outside of NS LFAs
-  #could check that LFA matches the LAT/LON too with the ISIN function...
   
   #these lists are to catch errors. Sex must be 1-3 (not optional so no NA)
-  #shell is optional but if entered must be 1-6, same with claw and v-noth except 1-3 and yes/no respectively
+  #shell is optional but if entered must be 1-6, same with claw and v-notch except 1-3 and yes/no respectively
   sex_values <- c(1,2,3)
   shell_values <- c(NA, 1:6)
   claw_values <- c(NA,1,2,3)
@@ -86,10 +119,18 @@ upload_from_file3 <- function(myfile){
   #do data manipulation after error checking
   #fill in all missing tag colours/prefixes based on affiliation: DFO/CBFH is Blue (XY), SWLSS is RED (SWLSS)
   #doesn't overwrite existing tag colours or prefixes
+  #check out functions tag_color_filler and tag_prefix_filler to add new affiliations and colours
   my_new_Data[(is.na(my_new_Data$'Tag Color')),]$'Tag Color' <- sapply(my_new_Data[(is.na(my_new_Data$'Tag Color')),]$Affiliation,tag_color_filler)
   my_new_Data[(is.na(my_new_Data$'Tag Prefix')),]$'Tag Prefix' <- sapply(my_new_Data[(is.na(my_new_Data$'Tag Prefix')),]$Affiliation,tag_prefix_filler)
   
+  
+  #test_data$latdd.dd <- with(my_new_Data, 'Lat Degrees' * 100)
+  #test_data = my_new_Data
+  #as.numeric(test_data['Lat Degrees'])
+
+  
   #create pipe that groups excel
+  #since we are no longer importing latdd.dd and londd.dd these have to be calculated and added to the dataframe
   new_excel_df <- my_new_Data %>%
     group_by(Date, latdd.dd, londd.dd) %>%
     mutate(id = cur_group_id())
@@ -139,6 +180,7 @@ upload_from_file3 <- function(myfile){
   # }
   
   ####################################################################################
+  #x = 1
   for(x in 1:max(new_excel_df$id)){
     #look at specific group, this will be looped
     newdf2 <- new_excel_df  %>% filter(id == x)
@@ -147,6 +189,21 @@ upload_from_file3 <- function(myfile){
     new_df3 <- as.data.frame(newdf2)
     bdata_df = new_df3[bdata_keep]
 
+    #sdata_list is ultimately what is passed through to sample_ent
+    #because it's passed as a list and sample ent removed things based on position in the list
+    #if you add or removed any elements here you MUST change the position in sample ent as well
+    #positions
+    keener_variables = c("Vessel", "Port","Captain", "LFA",
+                         "Affiliation", "Sampler", "Date",
+                         "Lat Degrees", "Lon Degrees", "Day",
+                         "Month", "Year", "latdd.dd", "londd.dd")
+    keener_positions = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    
+    #if the spreadsheet changes make sure these field names are the same as previous
+    #if new fields and the data needs to be passed to Oracle add them to the END of this list
+    #and then specify the list number in sample_ent to ensure the data gets all the way through
+    #note: if you add variable to the beginning of this list it will change all the variables in
+    #sample_ent
     sdata_list = c(new_df3["Vessel"][1,1],
                    new_df3["Port"][1,1],
                    new_df3["Captain"][1,1],
@@ -156,14 +213,16 @@ upload_from_file3 <- function(myfile){
                    new_df3["Date"][1,1],
                    new_df3["Lat Degrees"][1,1] * 100 + new_df3["Lat Minutes"][1,1], #conpos function does the same thing but it's quicker here
                    new_df3["Lon Degrees"][1,1] * 100 + new_df3["Lon Minutes"][1,1],
-                   new_df3["Comments"][1,1],
+                   #new_df3["Comments"][1,1], #no comments in new upload template
                    new_df3["Day"][1,1],
                    new_df3["Month"][1,1],
                    new_df3["Year"][1,1],
                    new_df3["latdd.dd"][1,1],
-                   new_df3["londd.dd"][1,1]
+                   new_df3["londd.dd"][1,1],
+                   new_df3["Sampler 2"][1,1],
+                   new_df3["Tag Prefix"][1,1]
     )
-    #the print is for debug, but sample_ent loads all data into oracle
+    #the first print is for debug, but sample_ent loads all data into oracle
     print(paste(x,max(new_excel_df$id),sep = " of "))
     out = paste(out, sample_ent(bdata = bdata_df, sdata = sdata_list, from_file = TRUE), sep = " ")
   }
@@ -212,18 +271,13 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   #the data behaves differently when saved to file, this script was run and debugged with an intermediate file
   #may need additional testing if temp file to be removed.
   if(from_file == FALSE){
-    
     #tempfile path (this will different every time script is run)
     jsonFilePath = tempfile(pattern = "bdata", tmpdir = tempdir(), fileext = ".json")
     write(bdata, jsonFilePath)
-
   }
   
   if(from_file == FALSE){
-    
-
     sdata_file = tempfile(pattern = "sdata", tmpdir = tempdir(), fileext = ".txt")
-    
     write.table(sdata, file = sdata_file, sep = "")
     
     file_str <- paste(readLines(sdata_file), collapse="\n")
@@ -293,25 +347,37 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     dat = paste(day, mon, year, sep = "/")
     
   } else{
-    dat = sdata[7]
-    sam = sdata[6]
-    ves = sdata[1]
-    LFA = sdata[4]
-    capt = sdata[3]
+    dat = sdata[7]     #date, leading indicator of good data (written over later)
+    sam = sdata[6]     #technician
+    sam2 = sdata[15]    #2nd technician
+    ves = sdata[1]     #vessel
+    LFA = sdata[4]     #LFA
+    capt = sdata[3]    #captain
     dep = ""
-    com = sdata[10]
-    lat = sdata[8]
-    lon = sdata[9]
-    affl = sdata[5]
-    day = sdata[11]
-    mon = sdata[12]
-    year = sdata[13]
-    rlat = sdata[14]
-    rlon = as.numeric(sdata[15]) * -1
+    #com = sdata[10]    #comments have been removed in new upload template
+    lat = sdata[8]     #lat
+    lon = sdata[9]     #lon
+    affl = sdata[5]    #affiliation
+    #day = sdata[11]    #day
+    day = sdata[10]    #new template day
+    #mon = sdata[12]    #month
+    mon = sdata[11]    #new template month
+    #year = sdata[13]   #year
+    year = sdata[12]   #new template year
+    #rlat = sdata[14]
+    rlat = sdata[13]
+    #rlon = as.numeric(sdata[15]) * -1
+    rlon = as.numeric(sdata[14]) * -1
+    tag_prefix = sdata[16]
+    #tag prefix will be important when there are multiple tagging programs
+    #in this database. All oracle tables with a tag (TAGID) should also
+    #have tag prefix to help differentiate programs down the line
     
+    #dat called twice, keeping sdata dat as a leading indicator in error checking
     dat = paste(day, mon, year, sep = "/")
   }
   
+  #database variables
   sta = ""
   res = ""
   samp = ""
@@ -320,11 +386,12 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   wrisamp = FALSE
   writrip = FALSE
 
-  #database names...
+  #database names
   database_name = paste("LOBSTER",".","LBT_TRIP", sep="")
   sampdb = paste("LOBSTER",".","LBT_SAMPLE", sep="")
   tripdb = paste("LOBSTER",".","LBT_TRIP", sep="")
   
+  #does the trip already exist?
   sql = paste("SELECT TRIP_ID from ", tripdb, " where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND TECHNICIAN = '",sam,"'", sep = "")
 
   result <- ROracle::dbSendQuery(con, sql) 
@@ -338,8 +405,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   }
   
   if (exis == 0) {            
-    
-    sql = paste('select TRIP_ID from ', database_name, sep = "")
+    sql = paste('SELECT TRIP_ID FROM ', tripdb, sep = "")
     result <- ROracle::dbSendQuery(con, sql) 
     result <- ROracle::fetch(result)
     res = nrow(result) + 300 
@@ -347,17 +413,20 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     #LFAs to fill both stat and sub areas for now.
     sta = LFA
     suba = LFA
-  
-  reldat = lubridate::dmy(dat)
-  
-  tripsql = paste("INSERT INTO ",database_name," (TRIP_ID, TECHNICIAN, AFFILIATION, VESSEL, LFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",affl,"' , '",SQLsafty(ves),"' , '",LFA,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
-  
-  writrip = T
+    
+    reldat = lubridate::dmy(dat)
+    
+    #newly added second technician for release data
+    tripsql = paste("INSERT INTO ",tripdb," (TRIP_ID, TECHNICIAN, TECHNICIAN_B, AFFILIATION, VESSEL, LFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '", sam2,"' , '",affl,"' , '",SQLsafty(ves),"' , '",LFA,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
+    
+    writrip = T
   }
 
+#does this sample section exist yet?
+#check trip id with LAT/LON
 sql = paste("SELECT SAMPLE_ID FROM ",sampdb, " WHERE TRIP = '",res,"' AND LAT_DD_DDDD = '",rlat,"' AND LONG_DD_DDDD = '",rlon,"'", sep = "")
 
-result <- ROracle::dbSendQuery(con, sql) 
+result <- ROracle::dbSendQuery(con, sql)
 result <- ROracle::fetch(result)
 res2 = nrow(result) 
 
@@ -371,13 +440,19 @@ if (res2 == 0) {
   result <- ROracle::fetch(result)
   samp = as.character(nrow(result) + 3500) 
   
-  sampsql = paste("INSERT INTO ", sampdb, " VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",SQLsafty(com),"')", sep = "")
+  #no comments in the new template, defaulting to say NA
+  #it's the last field in sampdb, so if it ever changes just change 'NA' to the variable
+  #this is where the dep (depth) variable in fathoms goes, this is currently stored as a string with zero length
+  #sampsql = paste("INSERT INTO ", sampdb, " VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",SQLsafty(com),"')", sep = "")
+  sampsql = paste("INSERT INTO ", sampdb, " VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",'NA',"')", sep = "")
+  
   wrisamp = TRUE
 }
 
 if(from_file == TRUE){
   dd = bdata
 } else {
+  #create a dataframe, the headers are included and the data is passed as a json
   dd = as.data.frame(jsonlite::fromJSON(jsonFilePath)[2:nrow(jsonlite::fromJSON(jsonFilePath)),])
   names(dd) = jsonlite::fromJSON(jsonFilePath)[1,]
   
@@ -385,13 +460,14 @@ if(from_file == TRUE){
   unlink(jsonFilePath)
 }
 
-
+#this is legacy code but still necessary in case anyone uses the webui to input a few tags at a time instead of batch uploading
+#duplicate tags from bath upload will be flagged in upload_from_file3
 #this for loop will check if any of the Tag Numbers that you are inputting have already been entered. If they have it will reject all the entries and report a list of repeat tags.
 writedata = TRUE
+#i = 1
 for(i in 1:nrow(dd)){
   if(i > 0){
     if(!is.na(dd$`Tag Num`[i])){
-      
       biodb = paste("LOBSTER",".","LBT_BIO", sep="")
       sql = paste("SELECT TAG_ID FROM ", biodb, " where TAG_ID = '", dd$`Tag Num`[i],"'", sep = "")
       
@@ -408,15 +484,25 @@ for(i in 1:nrow(dd)){
 
 #if you get into this if statement in means the tag numbers are novel.
 if(writedata){
+  #i = 1
   for(i in 1:nrow(dd)){
     if(i > 0){
       if(!is.na(dd$`Tag Num`[i])){
         if(is.null(dd$`Claw`[i])) dd$`Claw`[i] = NA
         if(is.na(dd$`Tag Color`[i])) dd$`Tag Color`[i] = 'Blue'  #should default = blue be on front end? (use isna to default to blue)
         #okay, this one is a bit tricky. Tag Num = Tag Num, Carapace = Carapace, Claw = Claw, Shell Cond
-        sql = paste("INSERT INTO ", biodb, " vALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",'XY',"')", sep = "")
         
-        #the commented code below has headers that belong to crab... we've since updated.
+        #if tag colour is blue, make the tag xy...
+        #if(dd$`Tag Color`[i] = 'Blue'{
+        #tag_prefix = 'XY'
+        #}
+        
+        # *********** this inserts 'XY' into the BIO table regardless of affiliation
+        #sql = paste("INSERT INTO ", biodb, " vALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",'XY',"')", sep = "")
+        
+        #updated to include tag prefix
+        sql = paste("INSERT INTO ", biodb, " VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",tag_prefix,"')", sep = "")
+        
         result <- ROracle::dbSendQuery(con, sql) 
 
         if(dbGetInfo(result, what = "rowsAffected") > 0){
@@ -433,18 +519,22 @@ if(writedata){
   
   if(wrisamp){
     
+    #sampsql is an action query, we are looking to update lbt_samp
     rs = ROracle::dbSendQuery(con, sampsql) 
     
+    #update successful
     if(dbGetInfo(rs, what = "rowsAffected") == 1){
       out = paste(out,"\nSample from trip ",res, " with pos ",lat, " " ,lon, " successfully added", sep = "")
     }
     else{
-      out =  paste(out, "\nError: row 264: " ,sampsql , "\n" , rs, "\n", sep = "")
+      #update unsuccessful, the rs now holds the error
+      out =  paste(out, "\nError:  " ,sampsql , "\n" , rs, "\n", sep = "")
       return(out)
       die()
     }
   }
   if(writrip){
+    #send update to lbt_trip
     result2 <- ROracle::dbSendQuery(con, tripsql) 
     
     if(dbGetInfo(result2, what = "rowsAffected") == 1){
@@ -471,7 +561,6 @@ return(out)
 #' @return message to webpage
 #' @export
 ret_ent <- function(ddata){
-  
   tryCatch({
     drv <- DBI::dbDriver("Oracle")
     conn <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
@@ -484,7 +573,6 @@ ret_ent <- function(ddata){
   out = ""
   
   ent = myUrlEncode(ddata)
-  
   ent = unlist(str_split(ent, "&"))
   
   #radio-choice-2 
@@ -514,7 +602,6 @@ ret_ent <- function(ddata){
   sex = ""
   egg = ""
   tag_prefix = ""
-  
   
   for(i in 1:length(ent)){
     if(ent[i] != ""){
@@ -618,6 +705,7 @@ ret_ent <- function(ddata){
   day = df[2]
   dat = paste(day, mon, year, sep = "/")
 
+  #ret = ""
   if(rc2 == "choice-1")ret = 1
   if(rc2 == "choice-2")ret = 2
   if(rc2 == "choice-3")ret = 3
@@ -635,6 +723,7 @@ ret_ent <- function(ddata){
   }
   
   #egg data can be derived from sex input
+  #two names for same variable
   if(sex == 1){
     egg = "NA"
   }
@@ -647,6 +736,7 @@ ret_ent <- function(ddata){
   
   add = unlist(str_split(add, ","))[1]
   
+  #route if return address doesn't have a town.
   if(add == ""){
     if(rou != "")
       add = paste(str, rou, sep = ", ")
@@ -699,7 +789,7 @@ ret_ent <- function(ddata){
   result <- ROracle::dbSendQuery(conn, toda1) 
   
   if(dbGetInfo(result, what = "rowsAffected") == 1){
-    out = paste(out, "New entry added to ", peopdb, " ", gstring, "  with TAG_ID: ", tid, sep = "")
+    out = paste(out, "New entry added to ", captdb, "  with TAG_ID: ", tid, sep = "")
   }
   else{
     out =  paste(out, "\nError: " ,toda1 , "\n" , result, "\n", sep = "")
@@ -808,47 +898,49 @@ autoavailableT = function(region = ""){
   }, finally = {
   })
   
-  # region = "ss"
-  
   # lobster database shortcuts
   # captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
   # peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
   lbiodb = paste("LOBSTER",".","LBT_BIO", sep = "")
   
-  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   result = ""
-  #if(region == "ss"){
-    #res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
   my_qry <- paste("SELECT TAG_ID from ", lbiodb, sep = "")
   result <- ROracle::dbSendQuery(con, my_qry)
-    #old crab code
-    #result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO") 
-    
-  #}
-  # if(region == "g"){
-  #   #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
-  #   result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO_GULF") 
-  # }
+  
+  result <- ROracle::fetch(result)
+  ROracle::dbDisconnect(con)
+
+  return(toJSON(result))
+}
+
+#' @title  auto_availableCT
+#' @description same as auto_availableT, except it looks only at captured tags
+#' @import ROracle jsonlite
+#' @export
+autoavailableCT = function(region = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  # lobster database shortcuts
+  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
+  # peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
+  #lbiodb = paste("LOBSTER",".","LBT_BIO", sep = "")
+  
+  result = ""
+  #my_qry <- paste("SELECT TAG_ID from ", lbiodb, sep = "")
+  my_qry <- paste("SELECT TAG from ", captdb, sep = "")
+  result <- ROracle::dbSendQuery(con, my_qry)
   
   result <- ROracle::fetch(result)
   ROracle::dbDisconnect(con)
   
-  #odbcClose(con)
-  
   return(toJSON(result))
-  # 
-  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-  # 
-  # res = ""
-  # if(region == "ss"){
-  #   res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
-  # }
-  # if(region == "g"){
-  #   res = sqlQuery(con, "select TAG_ID from SCT_BIO_GULF" )
-  # }
-  # odbcClose(con)
-  # 
-  # return(toJSON(res))
 }
 
 #' @title  autoaddData
@@ -880,11 +972,10 @@ autoaddData = function(name = "", region = ""){
   
 }
 
-#' @title  auto_availableDate
-#' @description Function that autocompletes dates from captured tags
-#' @import ROracle jsonlite
-#' @export
-autoavailableDate = function(region = "", tagid = ""){
+#' @title  find_capture_tag
+#' @description find captured tag data to delete
+#' @import stringr jsonlite
+find_capture_tag = function(deldata = ""){
   tryCatch({
     drv <- DBI::dbDriver("Oracle")
     con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
@@ -893,71 +984,69 @@ autoavailableDate = function(region = "", tagid = ""){
     return(toJSON("Connection failed"))
   }, finally = {
   })
-
-  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
-
-  tagid = 2587 #testout a random tag
-  my_qry <- paste("SELECT CAPTURE_DATE FROM ", captdb, " WHERE TAG = '", tagid, "'", sep = "")
-  result <- ROracle::dbSendQuery(con, my_qry)
-
-  result <- ROracle::fetch(result)
-  ROracle::dbDisconnect(con)
   
-  return(toJSON(result))
-}
-
-#' @title  delete_capture_tag
-#' @description delete lobster tag after bad data
-delete_capture_tag = function(deldata = ""){
-  tryCatch({
-    drv <- DBI::dbDriver("Oracle")
-    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
-  }, warning = function(w) {
-  }, error = function(e) {
-    return(toJSON("Connection failed"))
-  }, finally = {
-  })
+  #deldata = "ssorg=ss&tid=901&date=05%2F14%2F2022"
+  
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
   
   tagid = ""
   date = ""
   
-  biodb  = paste("LOBSTER",".","LBT_BIO", sep = "")
-  tripdb  = paste("LOBSTER",".","LBT_TRIP", sep = "")
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
   captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
   
-  my_query = paste('DELETE FROM "LOBSTER"."LBT_CAPTURE" WHERE TAGID = ' ,sep = "")
-  #tagid = 2587
-  #date = result[[1]][1]
-  
-  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = '", '24-MAY-22', "'", sep = "")
-  
-  my_query = paste("DELETE FROM ", captdb, " WHERE TAG_ID = '", tagid, "' AND CAPTURE_DATE = '", date, "'", sep = "")
-  my_query = paste("DELETE FROM ", captdb, " WHERE TAG_ID = '", tagid, "' AND CAPTURE_DATE = '", date, "'", sep = "")
-  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = '", date, "'", sep = "")
-  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "'", sep = "")
-  
-  #tagid = 'testvessel'
-  sql = paste("DELETE FROM ", biodb, " where TAG_ID = '", tagid,"'", sep = "")
-  sql = paste("DELETE FROM ", tripdb, " where VESSEL = '", tagid,"'", sep = "")
-  
-  #do this except delete entire row instead of selecting.
-  
-  send_query = ROracle::dbSendQuery(con, sql)
-  
-  ROracle::dbCommit(con)
-  ROracle::dbDisconnect(con)
+  #find data in capture table and show in message console
+  sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = to_date('", dat,"', 'dd/mm/yyyy')", sep = "")
+  #sql = paste("SELECT * FROM ", captdb, " WHERE TAG = '", tagid, "'", sep = "")
   
   result <- ROracle::dbSendQuery(con, sql)
   result <- ROracle::fetch(result)
   ROracle::dbDisconnect(con)
   
+  out = ""
   
-  return(TRUE)
+  if(nrow(result) > 1){
+    out <- paste("warning, same tag caught multiple times that day")
+  }
+  
+  da <- result
+  
+  #my_vector <- names(da)
+  #out <- paste(da[1,1], da[1,2], da[1,3], da[1,4], da[1,5], da[1,6], sep = " ")
+  out <- paste(out, jsonlite::toJSON(da), sep = "\n")
+  #out <- da
+
+  #out = paste(tagid, date, sep = " ")
+  return(out)
 }
 
-#' @title  delete_lobster_peripherals
-#' @description delete lobster tag after bad data
-delete_lobster_peripherals = function(tagid = ""){
+#' @title  delete_capture_tag2
+#' @description find captured tag data to delete
+#' @import stringr jsonlite
+delete_capture_tag2 = function(deldata = ""){
   tryCatch({
     drv <- DBI::dbDriver("Oracle")
     con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
@@ -967,23 +1056,213 @@ delete_lobster_peripherals = function(tagid = ""){
   }, finally = {
   })
   
-  #delete trip if empty
-  biodb  = paste("Lobster",".","LBT_BIO", sep = "")
-  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
-  peopdb = paste("LOBSTER",".","LBT_PEOPLE", sep = "")
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
   
-  send_query = ROracle::dbSendQuery(con, sampsql)
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER", ".", "LBT_CAPTURE", sep = "")
+  pathdb = paste("LOBSTER", ".", "LBT_PATH", sep = "")
+  pathsdb = paste("LOBSTER", ".", "LBT_PATHS", sep = "")
+  
+  #user will have okay'd the query, so we'll run it here and delete
+  #delete from capture table
+  capture_delete_query = paste("DELETE FROM ", captdb, " WHERE TAG = '", tagid, "' AND CAPTURE_DATE = to_date('", dat,"', 'dd/mm/yyyy')", sep = "")
+  
+  #delete all instances of tag in PATH table
+  path_delete_query = paste("DELETE FROM ", pathdb, " WHERE TID = '", tagid, "'", sep = "")
+  
+  #delete all instances in PATHS table
+  paths_delete_query = paste("DELETE FROM ", pathsdb, " WHERE TID = '", tagid, "'", sep = "")
+  
+  #send all queries
+  send_capture_query = ROracle::dbSendQuery(con, capture_delete_query)
+  send_path_query = ROracle::dbSendQuery(con, path_delete_query)
+  send_paths_query = ROracle::dbSendQuery(con, paths_delete_query)
+  
+  ROracle::dbCommit(con)
+  ROracle::dbDisconnect(con)
+
+  out <- paste("\nCAPTURE data for tag: ", tagid, " on ", dat, " has been deleted.\nAll PATH and PATHS data for tag: ", tagid, " has been deleted.", sep = "")
+
+  return(out)
+}
+
+#' @title  find_release_tag
+#' @description find captured tag data to delete
+#' @import stringr jsonlite
+find_release_tag = function(deldata = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  #deldata = "ssorg=ss&tid=300&date=05%2F14%2F2022"
+  
+  #each tag only has one release, so we can search everything but tagid only
+  
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
+  
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER",".","LBT_CAPTURE", sep = "")
+  biodb = paste("LOBSTER",".","LBT_BIO", sep = "")
+  sampdb = paste("LOBSTER",".","LBT_SAMPLE", sep = "")
+  tripdb = paste("LOBSTER",".","LBT_TRIP", sep = "")
+  
+  #find data in bio table and show in message console
+  tag_sql = paste("SELECT * FROM ", biodb, " WHERE TAG_ID = '", tagid, "'", sep = "")
+  
+  result <- ROracle::dbSendQuery(con, tag_sql)
+  result <- ROracle::fetch(result)
+  
+  samp = result[['SAMPLE_NUM']]
+  samp_sql = paste("SELECT * FROM ", sampdb, " WHERE SAMPLE_ID = '", samp, "'", sep = "")
+  
+  samp_result <- ROracle::dbSendQuery(con, samp_sql)
+  samp_result <- ROracle::fetch(samp_result)
+  
+  #get all tags that are in the same sample as the problem tag.
+  all_tags_in_sample_sql = paste("SELECT TAG_ID FROM ", biodb, " WHERE SAMPLE_NUM = '", samp, "'", sep = "")
+  
+  all_tags_result <- ROracle::dbSendQuery(con, all_tags_in_sample_sql)
+  all_tags_result <- ROracle::fetch(all_tags_result)
+  
+  #trip = samp_result[['TRIP']]
+  #trip_sql = paste("SELECT * FROM ", tripdb, " WHERE SAMPLE_ID = '", samp, "'", sep = "")
+  
+  #samp_result <- ROracle::dbSendQuery(con, samp_sql)
+  #samp_result <- ROracle::fetch(samp_result)
+  
+  ROracle::dbDisconnect(con)
+  
+  out = ""
+  
+  da <- result
+  out <- paste(out, jsonlite::toJSON(da), sep = "\n")
+  
+  out = paste(out, "\n\nThese are all the tags in the same sample group:", sep = "")
+  out = paste(out, all_tags_result, sep = "")
+
+  return(out)
+}
+
+#' @title  delete_one_release_tag
+#' @description only deletes the one tag
+#' @import stringr jsonlite
+delete_one_release_tag = function(deldata = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
+  
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER", ".", "LBT_CAPTURE", sep = "")
+  pathdb = paste("LOBSTER", ".", "LBT_PATH", sep = "")
+  pathsdb = paste("LOBSTER", ".", "LBT_PATHS", sep = "")
+  
+  release_delete_query = paste("DELETE FROM ", biodb, " WHERE TAG_ID = '", tagid, "'", sep = "")
+
+  #send query
+  send_capture_query = ROracle::dbSendQuery(con, release_delete_query)
   
   ROracle::dbCommit(con)
   ROracle::dbDisconnect(con)
   
-  #delete sample
-  return(TRUE)
+  out <- paste("\nRelease data for tag: ", tagid, " has been deleted from BIO Table.", sep = "")
+  
+  return(out)
 }
 
-#' @title  delete_lobster_capture
-#' @description delete lobster capture data
-delete_lobster_capture = function(tagid = ""){
+#' @title  delete_all_release_tag
+#' @description delete entire sample of tags
+#' @import stringr jsonlite
+delete_all_release_tag = function(deldata = ""){
   tryCatch({
     drv <- DBI::dbDriver("Oracle")
     con <- ROracle::dbConnect(drv, username = oracle.lobster.user, password = oracle.lobster.password, dbname = oracle.lobster.server)
@@ -993,11 +1272,70 @@ delete_lobster_capture = function(tagid = ""){
   }, finally = {
   })
   
-  my_query = paste('DELETE FROM "LOBSTER"."LBT_CAPTURE" WHERE ',sep = "")
-  return(TRUE)
+  del = myUrlEncode(deldata)
+  del = unlist(str_split(del, "&"))
+  
+  tagid = ""
+  date = ""
+  
+  for(i in 1:length(del)){
+    if(del[i] != ""){
+      
+      sa = unlist(str_split(del[i], "="))
+      
+      if(sa[1] == "ssorg")
+        reg = sa[2]
+      if(sa[1] == "tid")
+        tagid = sa[2]
+      if(sa[1] == "date")
+        date = sa[2]
+    }
+  }
+  
+  #convert day to correct format
+  df = unlist(str_split(date, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  captdb = paste("LOBSTER", ".", "LBT_CAPTURE", sep = "")
+  pathdb = paste("LOBSTER", ".", "LBT_PATH", sep = "")
+  pathsdb = paste("LOBSTER", ".", "LBT_PATHS", sep = "")
+  
+  #find problem tag number and delete all tags from same sample
+  tag_sql = paste("SELECT * FROM ", biodb, " WHERE TAG_ID = '", tagid, "'", sep = "")
+  
+  result <- ROracle::dbSendQuery(con, tag_sql)
+  result <- ROracle::fetch(result)
+  
+  samp = result[['SAMPLE_NUM']]
+  samp_sql = paste("SELECT * FROM ", sampdb, " WHERE SAMPLE_ID = '", samp, "'", sep = "")
+  
+  samp_result <- ROracle::dbSendQuery(con, samp_sql)
+  samp_result <- ROracle::fetch(samp_result)
+  
+  #this is just for reporting to console, to let user know exactly which tags have
+  #been deleted.
+  all_tags_in_sample_sql = paste("SELECT TAG_ID FROM ", biodb, " WHERE SAMPLE_NUM = '", samp, "'", sep = "")
+  
+  all_tags_result <- ROracle::dbSendQuery(con, all_tags_in_sample_sql)
+  all_tags_result <- ROracle::fetch(all_tags_result)
+  
+  #delete bio table tags and single sample number row
+  tags_delete_query = paste("DELETE FROM ", biodb, " WHERE SAMPLE_NUM = '", samp, "'", sep = "")
+  sample_delete_query = paste("DELETE FROM ", sampdb, " WHERE SAMPLE_ID = '", samp, "'", sep = "")
+  
+  #send query
+  send_bio_query = ROracle::dbSendQuery(con, tags_delete_query)
+  send_sample_query = ROracle::dbSendQuery(con, sample_delete_query)
+  
+  ROracle::dbCommit(con)
+  ROracle::dbDisconnect(con)
+  
+  out <- paste("\nAll releases in sample: ", samp, " have been deleted from BIO Table: ", all_tags_result, "\nSample ", samp, " deleted from LBT_SAMPLE table",  sep = "")
+  
+  return(out)
 }
-
-
-
-
-

@@ -2,10 +2,9 @@
 % Please edit documentation in R/LobTagging.r
 \name{shortestpaths.SC}
 \alias{shortestpaths.SC}
-\title{Shortest Paths}
+\title{Shortestpaths.SC}
 \usage{
 shortestpaths.SC(
-  raster.path = system.file("extdata", "depthraster2.tif", package = "LobTag"),
   neighborhood = 16,
   type = "least.cost",
   redo = F,
@@ -15,13 +14,11 @@ shortestpaths.SC(
 \arguments{
 \item{neighborhood}{The number of adjacent cell over which to calculate, defaults to 16.}
 
-\item{type}{The type of calculation, either 'random.walk' or 'least.cost'. Defaults to random.walk}
+\item{type}{The type of calculation, either 'random.walk' or 'least.cost'. Defaults to 'least.cost'}
 
 \item{redo}{Set redo = TRUE if you want to rewrite all data, FALSE to only update new entries}
 
 \item{region}{Either 'ScotianShelf' or 'Gulf'}
-
-\item{rasterpath}{The canvas on which to calculate shortest path, defaults to depth raster.}
 }
 \value{
 dataframe
