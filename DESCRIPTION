@@ -7,7 +7,7 @@ Author: Brent Cameron
 Maintainer: Who to complain to <ben.zisserson@dfo-mpo.gc.ca>
 Description: All functions for Lobster tagging interface and database
 License: What license is it under?
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Encoding: UTF-8
 Collate: 
     'LobTagging.r'
