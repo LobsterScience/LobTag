@@ -3,17 +3,10 @@
 export(SQLsafty)
 export(absolutely.in.area)
 export(autoaddData)
-<<<<<<< HEAD
-export(autoavailableDate)
-export(autoavailableP)
-export(autoavailableT)
-export(captain_maps)
-export(collect_emails)
-=======
 export(autoavailableCT)
 export(autoavailableP)
 export(autoavailableT)
->>>>>>> fa0c1f39e26311296423aaca006b4117999438a5
+export(captain_maps)
 export(conpos)
 export(degmin2decdeg)
 export(do_not_send_email)

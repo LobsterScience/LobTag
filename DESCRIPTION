@@ -14,9 +14,6 @@ Collate:
     'TagWebGUI.r'
     'LobRewards.r'
     'TagMail.r'
-<<<<<<< HEAD
-Imports: 
-=======
 Imports:
->>>>>>> fa0c1f39e26311296423aaca006b4117999438a5
     DBI
+
