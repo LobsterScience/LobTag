@@ -65,18 +65,18 @@ captain_maps <- function(releases.data.path = NULL, output.directory = NULL){
     capt$ord = row.names(capt)
     capt <- capt %>% group_by(trip) %>% summarise(Captain=first(Captain),lat=first(lat),lon=first(lon),date=first(Date),ord = first(ord)) %>%ungroup()
     capt <- arrange(capt,as.numeric(ord))
-    capt <- capt %>% select(-trip,-ord)
+    capt <- capt %>% dplyr::select(-trip,-ord)
     capt <- capt %>% mutate(name = paste0(Captain,": ",date))
     
-    tag <- rec %>% select(TAG,CAPTURE_DATE,lat,lon)
+    tag <- rec %>% dplyr::select(TAG,CAPTURE_DATE,lat,lon)
     tag <- tag %>% filter(TAG  %in% capt.tags)
     tag <- tag %>% mutate(TAG = paste0("Tag: ",TAG,", ",CAPTURE_DATE))
     
     ####
     capt.name <- capt$Captain[1]
-    capt <- capt %>% select(-Captain,-date)
+    capt <- capt %>% dplyr::select(-Captain,-date)
     capt$Point = "Release Trip"
-    tag <- tag %>% select(-CAPTURE_DATE)
+    tag <- tag %>% dplyr::select(-CAPTURE_DATE)
     colnames(tag)[1] = "name"
     if(nrow(tag)>0){
       tag$Point = "Fisher Recapture"
@@ -95,7 +95,7 @@ captain_maps <- function(releases.data.path = NULL, output.directory = NULL){
     lns_all <- list()
     ref_tab_all <- NULL
     for(j in unique(capt$name)){
-      coords = capt %>% filter(name %in% j) %>% select(lon,lat)
+      coords = capt %>% filter(name %in% j) %>% dplyr::select(lon,lat)
       # ref_tab = capt %>% filter(name %in% j)
       # ref_tab_all = rbind(ref_tab_all,ref_tab)
       ln1 <- sp::Line(coords)
@@ -110,8 +110,8 @@ captain_maps <- function(releases.data.path = NULL, output.directory = NULL){
     capt$ord = row.names(capt)
     day.points <- capt %>% group_by(name) %>% summarise(lat=first(lat),lon=first(lon),Point=first(Point),Icon=first(Icon), ord = first(ord)) %>%ungroup()
     day.points <- arrange(day.points,as.numeric(ord))
-    capt <- capt %>% select(-ord)
-    day.points <- day.points %>% select(-ord)
+    capt <- capt %>% dplyr::select(-ord)
+    day.points <- day.points %>% dplyr::select(-ord)
     
     sf_capt <- sf::st_as_sf(day.points, coords = c("lon","lat"))
     sf::st_crs(sf_capt) <- sf::st_crs(4326)  # EPSG code for WGS84
