@@ -20,7 +20,7 @@ captain_maps <- function(releases.data.path = NULL, output.directory = NULL){
   library(ggplot2)
   
   #setwd("C:/Users/ELEMENTG/Documents/Tagging")
-  rel <-  releases.data.path
+  rel <-  read.csv(releases.data.path)
   #read.csv("Tag_releases_master_GE.csv")
   
   # test <- rel %>% group_by(Captain) %>% summarise(Vessel = first(Vessel),Affiliation=first(Affiliation)) %>% ungroup()
