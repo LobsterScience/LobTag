@@ -9,12 +9,6 @@ Description: All functions for Lobster tagging interface and database
 License: What license is it under?
 RoxygenNote: 7.2.3
 Encoding: UTF-8
-Collate: 
-    'LobTagging.r'
-    'TagWebGUI.r'
-    'LobRewards.r'
-    'TagMail.r'
-    'captain_maps.r'
 Imports:
     DBI
 
