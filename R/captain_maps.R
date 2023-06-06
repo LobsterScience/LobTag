@@ -132,8 +132,8 @@ captain_maps <- function(releases.data.path = NULL, output.directory = NULL){
     
     run.year = as.character(year(Sys.Date()))
     ## create file directory
-    if(dir.exists(paste0("C:/Users/ELEMENTG/Documents/Tagging/capt_maps/",capt.name,"_",run.year))== FALSE){
-      dir.create(paste0("C:/Users/ELEMENTG/Documents/Tagging/capt_maps/",capt.name,"_",run.year))
+    if(dir.exists(file.path(output.directory,paste0(capt.name,"_",run.year)))== FALSE){
+      dir.create(file.path(output.directory, paste0(capt.name,"_",run.year)))
     }
     ##create kml
     kml_file <- file.path(output.directory,paste0(capt.name,"_",run.year),paste0(capt.name,"_",run.year,".kml"))
