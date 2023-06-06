@@ -14,6 +14,7 @@ Collate:
     'TagWebGUI.r'
     'LobRewards.r'
     'TagMail.r'
+    'captain_maps.r'
 Imports:
     DBI
 
