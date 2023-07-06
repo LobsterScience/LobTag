@@ -41,13 +41,16 @@ upload_from_file3 <- function(myfile){
   #I've re-arranged the lat/lon calculations above so the order is only
   #correct for the FSRS list here.
   
+  ### G.Element edit: existing code takes columns by position, can make this more flexible to just select for desired columns if upload file contains additional columns/different column order:
+  select.names = c("Vessel", "Captain", "Port", "LFA", "Sampler", "Sampler.2", "Affiliation", "Day",	"Month", "Year", "Tag.Prefix",	"Tag.Color", "Tag.Num",	"Carapace.Length",	"Sex",	"Shell", "Claw", "V.Notch", "Lat.Degrees",	"Lat.Minutes",	"Lon.Degrees",	"Lon.Minutes", "latddmm.mm", "londdmm.mm", "latdd.dd", "londd.dd", "Date")
+  my_new_Data <- dplyr::select(my_new_Data,(all_of(select.names)))
+  
+  
+  
   #all_names_new = c("Vessel", "Port", "Captain",	"LFA",	"Affiliation",	"Sampler",	"Sampler 2",	"Sampler 3", "Tag Prefix",	"Tag Num",	"Tag Color",	"Carapace Length",	"Sex",	"Shell",	"Claw",	"V-Notch",	"Claw lost in trap",	"Day",	"Month", "Year",	"Date",	"Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes",	"Comments",	"latdd.dd",	"londd.dd", "date2")
   #all_names_new2 = c("Vessel", "Captain", "Port", "LFA", "Sampler", "Sampler 2", "Affiliation", "Day",	"Month", "Year", "Tag Prefix",	"Tag Color", "Tag Num",	"Carapace Length",	"Sex",	"Shell", "Claw", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes")
   all_names_new_test = c("Vessel", "Captain", "Port", "LFA", "Sampler", "Sampler 2", "Affiliation", "Day",	"Month", "Year", "Tag Prefix",	"Tag Color", "Tag Num",	"Carapace Length",	"Sex",	"Shell", "Claw", "V-Notch", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes", "latddmm.mm", "londdmm.mm", "latdd.dd", "londd.dd", "Date")
   #all_names_FSRS = c("Vessel", "Port", "Captain", "LFA", "Affiliation", "Sampler", "Sampler 2", "Tag Prefix","Tag Num",	"Tag Color", 	"Carapace Length",	"Sex",	"Shell", "Claw","V-Notch", "Day",	"Month", "Year","Date", "Lat Degrees",	"Lat Minutes",	"Lon Degrees",	"Lon Minutes", "latddmm.mm", "londdmm.mm", "latdd.dd", "londd.dd")
-  
-  ### G.Element edit: existing code takes columns by position, can make this more flexible to just filter for desired columns if upload file contains additional columns:
-  my_new_Data <- dplyr::select(my_new_Data,all_names_new_test)
   
   #old df named columns
   #names(my_new_Data) = all_names_new

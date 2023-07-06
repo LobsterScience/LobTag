@@ -1,6 +1,11 @@
+Install with:
+
+devtools::install_github("LobsterScience/LobTag")
+
 Dependencies:
 dplyr
-readxl
+
+
 
 Must change r temp folder to somthing thAT IS NOT RECOGINIZED BY internet explorer as a temp folder.
 

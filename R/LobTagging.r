@@ -353,36 +353,38 @@ get.capturedata = function(region = "ScotianShelf"){
 #' @export
 readcsvnew2 <- function(file, ...){
   
-  #make sure file is an excel file
-  if (!grepl(".xlsx$", file)) {
-    stop("Uploaded file must be a .xlsx file!")
+  #make sure file is a csv file
+  if (!grepl(".csv$", file)) {
+    stop("Uploaded file must be a .csv file!")
   }
+  
+### G.Element edit: commentted most of this out to avoid temporary file creation/saving, so now all this function does is check that file is a .csv then run upload_from_file3
   
   #saving the data as an .rda file was the quickest format to move in and out of
   #had some formatting issues with saving as .csv first
-  my_data <- read_excel(file)
-  tempdata <- paste0(tempdir(),"\\data.Rda")
-  
-  save(my_data, file=tempdata)
-  load(file=tempdata)
-  
-  #save location to a temporary location and pass the location to the upload_from_file3 function
-  #this can be streamlined by just passing data around instead of reading/writing files but
-  #is usefull for debugging
-  file_location = tempfile(pattern = "uploaded_file_data", tmpdir = tempdir(), fileext = ".csv")
-  
-  #file_location = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/file_uploads/data.csv"
-  write.csv(my_data, file_location, row.names = F)
-  
-  #remove temporary file is super important because you can't really dig these out
-  #remove the csv we saved locally as well.
-  file.remove(tempdata)
-  
+  # my_data <- read.csv(file)
+  # tempdata <- paste0(tempdir(),"\\data.Rda")
+  # 
+  # save(my_data, file=tempdata)
+  # load(file=tempdata)
+  # 
+  # #save location to a temporary location and pass the location to the upload_from_file3 function
+  # #this can be streamlined by just passing data around instead of reading/writing files but
+  # #is usefull for debugging
+  # file_location = tempfile(pattern = "uploaded_file_data", tmpdir = tempdir(), fileext = ".csv")
+  # 
+  # #file_location = "C:/Users/mckinnonsea/Desktop/New_Lobtag/LobTag/file_uploads/data.csv"
+  # write.csv(my_data, file_location, row.names = F)
+  # 
+  # #remove temporary file is super important because you can't really dig these out
+  # #remove the csv we saved locally as well.
+  #file.remove(tempdata)
+  # 
   #pass file to function that handles upload line by line
-  my_return = upload_from_file3(file_location)
+  my_return = upload_from_file3(file)
   
   #delete temporary file
-  file.remove(file_location)
+  #file.remove(file_location)
   
   return(my_return)
 }
