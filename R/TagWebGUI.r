@@ -65,9 +65,9 @@ upload_from_file3 <- function(myfile){
   
   #other error checks we could do?
   
-  #these lists are to catch errors. Sex must be 1-3 (not optional so no NA)
+  #these lists are to catch errors. Sex must be 1-3 (not optional so no NA) ---G.element edit: added NA option here to allow upload of tag 3570, can change back if this sex gets resolved
   #shell is optional but if entered must be 1-7, same with claw and v-notch except 1-3 and yes/no respectively
-  sex_values <- c(1,2,3)
+  sex_values <- c(NA,1,2,3)
   shell_values <- c(NA, 1:7)
   claw_values <- c(NA,1,2,3)
   vnotch_values <- c(NA,"YES","NO")
