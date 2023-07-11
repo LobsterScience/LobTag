@@ -65,9 +65,10 @@ upload_from_file3 <- function(myfile){
   
   #other error checks we could do?
   
-  #these lists are to catch errors. Sex must be 1-3 (not optional so no NA) 
+  #these lists are to catch errors. Sex must be 1-3 (not optional so no NA): until can figure out why LobTag won't take sex = NA, use 0 for sex = NA 
   #shell is optional but if entered must be 1-7, same with claw and v-notch except 1-3 and yes/no respectively
-  sex_values <- c(NA,1,2,3)
+  my_new_Data <- my_new_Data %>% mutate(Sex = ifelse(Sex  %in% NA, 0,Sex))
+  sex_values <- c(0,1,2,3)
   shell_values <- c(NA, 1:7)
   claw_values <- c(NA,1,2,3)
   vnotch_values <- c(NA,"YES","NO")
@@ -129,9 +130,7 @@ upload_from_file3 <- function(myfile){
   #check out functions tag_color_filler and tag_prefix_filler to add new affiliations and colours
   my_new_Data[(is.na(my_new_Data$'Tag Color')),]$'Tag Color' <- sapply(my_new_Data[(is.na(my_new_Data$'Tag Color')),]$Affiliation,tag_color_filler)
   my_new_Data[(is.na(my_new_Data$'Tag Prefix')),]$'Tag Prefix' <- sapply(my_new_Data[(is.na(my_new_Data$'Tag Prefix')),]$Affiliation,tag_prefix_filler)
-  
-  ## make sex = NA 'NA' until can figure out why LobTag can't handle sex = NA
-  my_new_Data <-  my_new_Data %>% mutate(Sex = ifelse(Sex %in% NA, 'NA', Sex))
+
   
   
   #test_data$latdd.dd <- with(my_new_Data, 'Lat Degrees' * 100)
