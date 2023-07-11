@@ -65,13 +65,14 @@ upload_from_file3 <- function(myfile){
   
   #other error checks we could do?
   
-  #these lists are to catch errors. Sex must be 1-3 (not optional so no NA) ---G.element edit: added NA option here to allow upload of tag 3570, can change back if this sex gets resolved
+  #these lists are to catch errors. Sex must be 1-3 (not optional so no NA) 
   #shell is optional but if entered must be 1-7, same with claw and v-notch except 1-3 and yes/no respectively
   sex_values <- c(NA,1,2,3)
   shell_values <- c(NA, 1:7)
   claw_values <- c(NA,1,2,3)
   vnotch_values <- c(NA,"YES","NO")
   carapace_values <- c(NA, 40:160) #this one will alert the user but continue with upload. 
+  
   
   #create subset to check data integrity, also check for duplicate tags being entered on same sheet.
   repeat_tags = my_new_Data$`Tag Num`[duplicated(my_new_Data$`Tag Num`)==TRUE]
@@ -128,6 +129,9 @@ upload_from_file3 <- function(myfile){
   #check out functions tag_color_filler and tag_prefix_filler to add new affiliations and colours
   my_new_Data[(is.na(my_new_Data$'Tag Color')),]$'Tag Color' <- sapply(my_new_Data[(is.na(my_new_Data$'Tag Color')),]$Affiliation,tag_color_filler)
   my_new_Data[(is.na(my_new_Data$'Tag Prefix')),]$'Tag Prefix' <- sapply(my_new_Data[(is.na(my_new_Data$'Tag Prefix')),]$Affiliation,tag_prefix_filler)
+  
+  ## make sex = NA 'NA' until can figure out why LobTag can't handle sex = NA
+  my_new_Data <-  my_new_Data %>% mutate(Sex = ifelse(Sex %in% NA, 'NA', Sex))
   
   
   #test_data$latdd.dd <- with(my_new_Data, 'Lat Degrees' * 100)
