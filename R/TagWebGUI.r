@@ -515,7 +515,7 @@ if(writedata){
         #sql = paste("INSERT INTO ", biodb, " vALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",'XY',"')", sep = "")
 
         #updated to include tag prefix
-        sql = paste("INSERT INTO ", biodb, " VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",tag_prefix,"')", sep = "")
+        sql = paste("INSERT INTO ", biodb, " VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",dd$`Tag Prefix`[i],"')", sep = "")
         
         result <- ROracle::dbSendQuery(con, sql) 
 
