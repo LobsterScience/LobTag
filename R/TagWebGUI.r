@@ -283,13 +283,11 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     #tempfile path (this will different every time script is run)
     jsonFilePath = tempfile(pattern = "bdata", tmpdir = tempdir(), fileext = ".json")
     write(bdata, jsonFilePath)
-    write(bdata, "C:/Users/ELEMENTG/Documents/Tagging/testbdata.json")
   }
   
   if(from_file == FALSE){
     sdata_file = tempfile(pattern = "sdata", tmpdir = tempdir(), fileext = ".txt")
     write.table(sdata, file = sdata_file, sep = "")
-    write.table(sdata, file = "C:/Users/ELEMENTG/Documents/Tagging/testsdata.txt")
     file_str <- paste(readLines(sdata_file), collapse="\n")
     
     #sdata file has been read so we can delete the file
@@ -387,9 +385,6 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     dat = paste(day, mon, year, sep = "/")
   }
   
-  ##troubleshooting
-  testbdata <- write.csv(bdata, file ="C:/Users/ELEMENTG/Documents/Tagging/testbdata.csv")
-  testsdata <- write.csv(sdata, file ="C:/Users/ELEMENTG/Documents/Tagging/testsdata.csv") 
   
   #database variables
   sta = ""
@@ -1259,6 +1254,7 @@ delete_one_release_tag = function(deldata = ""){
   captdb = paste("LOBSTER", ".", "LBT_CAPTURE", sep = "")
   pathdb = paste("LOBSTER", ".", "LBT_PATH", sep = "")
   pathsdb = paste("LOBSTER", ".", "LBT_PATHS", sep = "")
+  biodb = paste("LOBSTER",".","LBT_BIO", sep="")
   
   release_delete_query = paste("DELETE FROM ", biodb, " WHERE TAG_ID = '", tagid, "'", sep = "")
 
@@ -1318,6 +1314,7 @@ delete_all_release_tag = function(deldata = ""){
   captdb = paste("LOBSTER", ".", "LBT_CAPTURE", sep = "")
   pathdb = paste("LOBSTER", ".", "LBT_PATH", sep = "")
   pathsdb = paste("LOBSTER", ".", "LBT_PATHS", sep = "")
+  biodb = paste("LOBSTER",".","LBT_BIO", sep="")
   
   #find problem tag number and delete all tags from same sample
   tag_sql = paste("SELECT * FROM ", biodb, " WHERE TAG_ID = '", tagid, "'", sep = "")
