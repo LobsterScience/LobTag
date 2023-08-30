@@ -509,6 +509,8 @@ if(writedata){
         # *********** this inserts 'XY' into the BIO table regardless of affiliation
         #sql = paste("INSERT INTO ", biodb, " vALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",'XY',"')", sep = "")
         
+        testdd <<- dd
+        
         #updated to include tag prefix
         sql = paste("INSERT INTO ", biodb, " VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",tag_prefix,"')", sep = "")
         
