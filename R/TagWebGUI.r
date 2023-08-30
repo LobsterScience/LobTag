@@ -283,12 +283,13 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     #tempfile path (this will different every time script is run)
     jsonFilePath = tempfile(pattern = "bdata", tmpdir = tempdir(), fileext = ".json")
     write(bdata, jsonFilePath)
+    write(bdata, "C:/Users/ELEMENTG/Documents/Tagging/testbdata.json")
   }
   
   if(from_file == FALSE){
     sdata_file = tempfile(pattern = "sdata", tmpdir = tempdir(), fileext = ".txt")
     write.table(sdata, file = sdata_file, sep = "")
-    
+    write.table(sdata, file = "C:/Users/ELEMENTG/Documents/Tagging/testsdata.txt")
     file_str <- paste(readLines(sdata_file), collapse="\n")
     
     #sdata file has been read so we can delete the file
@@ -385,6 +386,10 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     #dat called twice, keeping sdata dat as a leading indicator in error checking
     dat = paste(day, mon, year, sep = "/")
   }
+  
+  ##troubleshooting
+  testbdata <- write.csv(bdata, file ="C:/Users/ELEMENTG/Documents/Tagging/testbdata.csv")
+  testsdata <- write.csv(sdata, file ="C:/Users/ELEMENTG/Documents/Tagging/testsdata.csv") 
   
   #database variables
   sta = ""
@@ -508,7 +513,7 @@ if(writedata){
         
         # *********** this inserts 'XY' into the BIO table regardless of affiliation
         #sql = paste("INSERT INTO ", biodb, " vALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",'XY',"')", sep = "")
-        testdb <<- dd
+
         #updated to include tag prefix
         sql = paste("INSERT INTO ", biodb, " VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$Shell[i],"','",dd$Claw[i],"','",dd$`Tag Color`[i],"','",dd$Sex[i],"','",dd$`V-Notch`[i],"','",tag_prefix,"')", sep = "")
         
