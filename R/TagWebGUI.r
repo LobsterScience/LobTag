@@ -323,6 +323,8 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
           dat = sa[2]
         if(sa[1] == "samp")
           sam = sa[2]
+        if(sa[1] == "samp2")
+          sam2 = sa[2]
         if(sa[1] == "ves")
           ves = sa[2]
         if(sa[1] == "lfa")
