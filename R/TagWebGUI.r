@@ -303,6 +303,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   
     dat = ""
     sam = ""
+    sam2 = ""
     ves = ""
     LFA = ""
     capt = ""
