@@ -403,8 +403,8 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   sampdb = paste("LOBSTER",".","LBT_SAMPLE", sep="")
   tripdb = paste("LOBSTER",".","LBT_TRIP", sep="")
   
-  write.csv(sdat, file = "C:/Users/ELEMENTG/Documents/Tagging/test_sdat")
-  write.csv(sdat, file = "C:/Users/ELEMENTG/Documents/Tagging/test_bdat")
+  write.csv(sdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_sdat")
+  write.csv(bdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_bdat")
   #does the trip already exist?
   sql = paste("SELECT TRIP_ID from ", tripdb, " where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND TECHNICIAN = '",sam,"'", sep = "")
 
