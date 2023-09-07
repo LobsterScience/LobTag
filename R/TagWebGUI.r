@@ -283,20 +283,18 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     #tempfile path (this will different every time script is run)
     jsonFilePath = tempfile(pattern = "bdata", tmpdir = tempdir(), fileext = ".json")
     write(bdata, jsonFilePath)
-    write(bdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_bdat.json")
   }
   
   if(from_file == FALSE){
     sdata_file = tempfile(pattern = "sdata", tmpdir = tempdir(), fileext = ".txt")
     write.table(sdata, file = sdata_file, sep = "")
-    write.table(sdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_sdat.txt", sep = "") 
     file_str <- paste(readLines(sdata_file), collapse="\n")
     
     #sdata file has been read so we can delete the file
-    #unlink(sdata_file)
+    unlink(sdata_file)
     
     start_string = unlist(gregexpr('date', file_str))
-    end_string = unlist(gregexpr('&lon=.{13}W', file_str)) + 19 # the '+19' is static because that's the length of the delimeter to the end of the string
+    end_string = unlist(gregexpr('&lon=.{12}W', file_str)) + 19 # the '+19' is static because that's the length of the delimeter to the end of the string
     
     sdata = substring(file_str, start_string, end_string - 1)
     
