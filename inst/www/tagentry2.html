@@ -507,7 +507,7 @@
           $("#sliderdmin").spinner({
             min: 000,
             max: 999,
-            step: 01,
+            step: 001,
             spin: function(event, ui) {
               $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad(ui.value, 2) + "N");
             }
@@ -562,7 +562,7 @@
           $("#sliderdmin2").spinner({
             min: 000,
             max: 999,
-            step: 1,
+            step: 001,
             spin: function(event, ui) {
               $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + $("#slidermin2").spinner("value") + "." + pad(ui.value, 2) + "W");
             }
