@@ -283,12 +283,13 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     #tempfile path (this will different every time script is run)
     jsonFilePath = tempfile(pattern = "bdata", tmpdir = tempdir(), fileext = ".json")
     write(bdata, jsonFilePath)
+    write(bdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_bdat.json")
   }
   
   if(from_file == FALSE){
     sdata_file = tempfile(pattern = "sdata", tmpdir = tempdir(), fileext = ".txt")
     write.table(sdata, file = sdata_file, sep = "")
-    write.csv(sdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_sdat.csv") 
+    write.table(sdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_sdat.txt", sep = "") 
     file_str <- paste(readLines(sdata_file), collapse="\n")
     
     #sdata file has been read so we can delete the file
