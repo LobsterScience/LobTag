@@ -505,8 +505,8 @@
           });
           $("#slidermin").spinner("value", 30);
           $("#sliderdmin").spinner({
-            min: 00,
-            max: 99,
+            min: 000,
+            max: 999,
             step: 01,
             spin: function(event, ui) {
               $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad(ui.value, 2) + "N");
@@ -560,8 +560,8 @@
           });
           $("#slidermin2").spinner("value", 30);
           $("#sliderdmin2").spinner({
-            min: 00,
-            max: 99,
+            min: 000,
+            max: 999,
             step: 1,
             spin: function(event, ui) {
               $("#amount2").val($("#sliderx").spinner("value") + "\xB0" + $("#slidermin2").spinner("value") + "." + pad(ui.value, 2) + "W");
