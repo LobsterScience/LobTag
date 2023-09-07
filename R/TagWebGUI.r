@@ -293,7 +293,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
     file_str <- paste(readLines(sdata_file), collapse="\n")
     
     #sdata file has been read so we can delete the file
-    unlink(sdata_file)
+    #unlink(sdata_file)
     
     start_string = unlist(gregexpr('date', file_str))
     end_string = unlist(gregexpr('&lon=.{13}W', file_str)) + 19 # the '+19' is static because that's the length of the delimeter to the end of the string
