@@ -288,6 +288,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   if(from_file == FALSE){
     sdata_file = tempfile(pattern = "sdata", tmpdir = tempdir(), fileext = ".txt")
     write.table(sdata, file = sdata_file, sep = "")
+    write.csv(sdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_sdat.csv") 
     file_str <- paste(readLines(sdata_file), collapse="\n")
     
     #sdata file has been read so we can delete the file
@@ -403,9 +404,9 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   sampdb = paste("LOBSTER",".","LBT_SAMPLE", sep="")
   tripdb = paste("LOBSTER",".","LBT_TRIP", sep="")
   
-  write.csv(sdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_sdat.csv")
+  
   write.csv(bdata, file = "C:/Users/ELEMENTG/Documents/Tagging/test_bdat.csv")
-  write.csv(samp, file = "C:/Users/ELEMENTG/Documents/Tagging/test_samp.csv")
+
   #does the trip already exist?
   sql = paste("SELECT TRIP_ID from ", tripdb, " where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND TECHNICIAN = '",sam,"'", sep = "")
 
