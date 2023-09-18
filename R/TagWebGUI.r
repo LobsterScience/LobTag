@@ -405,7 +405,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   
 
   #does the trip already exist?
-  sql = paste("SELECT TRIP_ID from ", tripdb, " where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND TECHNICIAN = '",sam,"'", sep = "")
+  sql = paste("SELECT TRIP_ID from ", tripdb, " where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND CAPTAIN = '",capt,"'", sep = "")
 
   result <- ROracle::dbSendQuery(con, sql) 
   result <- ROracle::fetch(result)

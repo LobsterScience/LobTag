@@ -491,7 +491,7 @@
             max: 47,
             step: 1,
             spin: function(event, ui) {
-              $("#amount").val(ui.value + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 3) + "N");
+              $("#amount").val(ui.value + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
             }
           });
           $("#slider").spinner("value", 45);
@@ -500,7 +500,7 @@
             max: 59,
             step: 1,
             spin: function(event, ui) {
-              $("#amount").val($("#slider").spinner("value") + "\xB0" + ui.value + "." + pad($("#sliderdmin").spinner("value"), 3) + "N");
+              $("#amount").val($("#slider").spinner("value") + "\xB0" + ui.value + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
             }
           });
           $("#slidermin").spinner("value", 30);
@@ -509,7 +509,7 @@
             max: 999,
             step: 001,
             spin: function(event, ui) {
-              $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad(ui.value, 3) + "N");
+              $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad(ui.value, 2) + "N");
             }
           });
           $("#sliderdmin").spinner("value", 50);
@@ -521,7 +521,7 @@
               min = $this.spinner('option', 'min');
             if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
             this.value = val > max ? max : val < min ? min : val;
-            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 3) + "N");
+            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
           });
           $("#slidermin").on("spinchange", function(event, ui) {
             var val = this.value,
@@ -530,7 +530,7 @@
               min = $this.spinner('option', 'min');
             if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
             this.value = val > max ? max : val < min ? min : val;
-            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 3) + "N");
+            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
           });
           $("#sliderdmin").on("spinchange", function(event, ui) {
             var val = this.value,
@@ -539,7 +539,7 @@
               min = $this.spinner('option', 'min');
             if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
             this.value = val > max ? max : val < min ? min : val;
-            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 3) + "N");
+            $("#amount").val($("#slider").spinner("value") + "\xB0" + $("#slidermin").spinner("value") + "." + pad($("#sliderdmin").spinner("value"), 2) + "N");
           });
           $("#sliderx").spinner({
             min: 56,
@@ -704,7 +704,7 @@
                     <div style='clear: left'></div>
                     <div id="ali" style="margin-bottom: 5px;  margin-left: 10px;">
                       <div style="float:left; margin-right:16px; position:relative; bottom:-5px;">Latitude:</div>
-                      <input id="slider" style="width:20px; font-size: 11pt;" />&deg; <input id="slidermin" style=" width:20px; font-size: 11pt; " /> . <input id="sliderdmin" style=" width:30px; font-size: 11pt;" /> ' <input type="text" name="lat" id="amount" style="border:none; font-size: 12pt; background:transparent; color: blue; " />
+                      <input id="slider" style="width:20px; font-size: 11pt;" />&deg; <input id="slidermin" style=" width:20px; font-size: 11pt; " /> . <input id="sliderdmin" style=" width:30px; font-size: 11pt;" /> ' <input type="text" name="lat" id="amount" style="border:none; font-size: 12pt; background:transparent; color: red; " />
                     </div>
                     <div id="ali2">
                       <div style="float:left; margin-right:2px; position:relative; bottom:-5px;  margin-left: 10px;">Longitude:</div>
