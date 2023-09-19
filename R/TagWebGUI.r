@@ -72,7 +72,8 @@ upload_from_file3 <- function(myfile){
   shell_values <- c(NA, 1:7)
   claw_values <- c(NA,1,2,3)
   vnotch_values <- c(NA,"YES","NO")
-  carapace_values <- c(NA, 40:160) #this one will alert the user but continue with upload. 
+  carapace_values <- c(NA, 40:150) #this one will alert the user but continue with upload.
+  carapace_values_fsrs <- c(NA, 40:170) # fsrs samples some really big females as part of the v-notch program, so increase the threshold in this case. 
   
   
   #create subset to check data integrity, also check for duplicate tags being entered on same sheet.
@@ -81,8 +82,8 @@ upload_from_file3 <- function(myfile){
   shell_problems <- subset(my_new_Data, !(Shell %in% shell_values))$'Tag Num'
   claw_problems <- subset(my_new_Data, !(Claw %in% claw_values))$'Tag Num'
   vnotch_problems <- subset(my_new_Data, !(`V-Notch` %in% vnotch_values))$'Tag Num'
-  carapace_problems <- subset(my_new_Data, !(`Carapace Length` %in% carapace_values))$'Tag Num'
-  
+  carapace_problems <- subset(my_new_Data, !(`Carapace Length` %in% carapace_values) & !(Affiliation  %in% "FSRS"))$'Tag Num'
+  carapace_problems_fsrs <- subset(my_new_Data, !(`Carapace Length` %in% carapace_values_fsrs) & (Affiliation  %in% "FSRS"))$'Tag Num'
   return_error = FALSE
   
   #error checks for each paramater
@@ -117,6 +118,12 @@ upload_from_file3 <- function(myfile){
   if(length(carapace_problems) > 0){
     for(i in 1:length(carapace_problems)){
       out = paste(out, "\nCarapace of tag is unusual (will still be uploaded): ", carapace_problems[i], sep = "")
+    }
+  }
+  
+  if(length(carapace_problems_fsrs) > 0){
+    for(i in 1:length(carapace_problems_fsrs)){
+      out = paste(out, "\nCarapace of tag is unusual, even for FSRS tagging (will still be uploaded): ", carapace_problems[i], sep = "")
     }
   }
   
