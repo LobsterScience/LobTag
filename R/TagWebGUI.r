@@ -123,7 +123,7 @@ upload_from_file3 <- function(myfile){
   
   if(length(carapace_problems_fsrs) > 0){
     for(i in 1:length(carapace_problems_fsrs)){
-      out = paste(out, "\nCarapace of tag is unusual, even for FSRS tagging (will still be uploaded): ", carapace_problems[i], sep = "")
+      out = paste(out, "\nCarapace of tag is unusual, even for FSRS tagging (will still be uploaded): ", carapace_problems_fsrs[i], sep = "")
     }
   }
   
@@ -412,7 +412,7 @@ sample_ent <- function(bdata, sdata, from_file = FALSE){
   
 
   #does the trip already exist?
-  sql = paste("SELECT TRIP_ID from ", tripdb, " where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND CAPTAIN = '",capt,"'", sep = "")
+  sql = paste("SELECT TRIP_ID from ", tripdb, " where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND CAPTAIN = '",capt,"' AND TECHNICIAN = '",sam,"'", sep = "")
 
   result <- ROracle::dbSendQuery(con, sql) 
   result <- ROracle::fetch(result)
@@ -533,6 +533,7 @@ if(writedata){
           return(out)
           die()
         }
+        ROracle::dbClearResult(result)
       }
     }
   }

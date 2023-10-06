@@ -42,6 +42,7 @@ rewards.knit.document = function(region = "ScotianShelf", other, version){
 }
 
 #' @title process_returns_for_web
+#' @export
 process_returns_for_web = function(){
   #easier to group functions here than in the javascript
   shortestpaths.SC()
@@ -52,9 +53,10 @@ process_returns_for_web = function(){
 
 #' @title  rewards.loop.function
 #' @description  function that will generate all the rewards emails and put them in a folder
-#' @import rmarkdown
+#' @import rmarkdown tinytex
 #' @export
-rewards.loop.function = function(){
+rewards.loop.function = function(tag.markdown.location = "C:/bio/LobTag/knit_rewards.Rmd", 
+                                 working.emails.location = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Email Attachments/"){
   perlist = generate.reward.data()
 
   markdownfilepath = tag.markdown.location
@@ -70,6 +72,9 @@ rewards.loop.function = function(){
     #the formatting of the fishername in the oracle table so we don't have to do any extra
     #steps when looking up fisher data from the file names later on.
     pdf_file_name = paste(email_path, perlist[[k]]$name, ".pdf", sep = "")
+    
+    #render function needs TinyTex installed to run properly. Check if installed and install if not
+    if(tinytex::is_tinytex() %in% FALSE){tinytex::install_tinytex()}
     
     rmarkdown::render(input = markdownfilepath,
                       output_format = 'pdf_document',
@@ -365,7 +370,10 @@ generate.reward.data = function(region = "ScotianShelf"){
 #' @param name The name of the person
 #' @param data The data to chart
 #' @import rgeos sp spatstat shadowtext ggplot2 ggmap ggthemes ggrepel geosphere RStoolbox raster
-rewards.chart = function(name = "", data = NULL){
+#' @export
+rewards.chart = function(name = "", data = NULL, 
+                         output.location = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs",
+                         working.maps.location = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Working Maps"){
   
   # The lable colors that are later randomized, opted for the following colors that are color blind friendly
   collist <- c("#E69F00", "#56B4E9", "#009E73", 
@@ -712,7 +720,7 @@ rewards.chart = function(name = "", data = NULL){
     
       #save to r directory with name, tag number and date.
       savename = paste(gsub(" ", "", name),"-", reldata$TAG_ID, " ", as.character(Sys.Date()),".pdf", sep = "")
-      map_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags and Names"
+      map_path = file.path(output.location,"Maps","Tags and Names")
       ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
       outlist = c(outlist, paste(working.maps.location, paste(gsub(" ", "", name),"-", i, ".pdf", sep = ""), sep = '/'))
       }
@@ -720,7 +728,7 @@ rewards.chart = function(name = "", data = NULL){
     if(keep_anon){
       #save anonymously to r drive
       savename = paste(name, " ", as.character(Sys.Date()),".pdf", sep = "")
-      map_path = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Maps/Tags Only"
+      map_path = file.path(output.location,"Maps/Tags Only")
       ggsave(filename = savename, path = map_path, plot = g3, width = 11, height = 10)
       name = anon_temp_name
     }

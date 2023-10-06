@@ -8,7 +8,8 @@ shortestpaths.SC(
   neighborhood = 16,
   type = "least.cost",
   redo = F,
-  region = "ScotianShelf"
+  region = "ScotianShelf",
+  raster.path = "C:/bio.data/bio.lobster/data/tagging/depthraster2.tif"
 )
 }
 \arguments{

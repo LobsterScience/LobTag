@@ -4,7 +4,11 @@
 \alias{rewards.loop.function}
 \title{rewards.loop.function}
 \usage{
-rewards.loop.function()
+rewards.loop.function(
+  tag.markdown.location = "C:/bio/LobTag/knit_rewards.Rmd",
+  working.emails.location =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Email Attachments/"
+)
 }
 \description{
 function that will generate all the rewards emails and put them in a folder

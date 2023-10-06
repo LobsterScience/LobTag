@@ -4,7 +4,14 @@
 \alias{rewards.chart}
 \title{rewards.chart}
 \usage{
-rewards.chart(name = "", data = NULL)
+rewards.chart(
+  name = "",
+  data = NULL,
+  output.location =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs",
+  working.maps.location =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Working Maps"
+)
 }
 \arguments{
 \item{name}{The name of the person}

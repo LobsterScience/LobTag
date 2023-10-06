@@ -7,8 +7,8 @@
 #' @import PBSmapping raster gdistance ROracle RMySQL rJava DBI
 #' @return dataframe
 #' @export
-shortestpaths.SC = function(neighborhood = 16, type = "least.cost", redo = F, region = "ScotianShelf"){
-  raster.path <- "C:/bio.data/bio.lobster/data/tagging/depthraster2.tif"
+shortestpaths.SC = function(neighborhood = 16, type = "least.cost", redo = F, region = "ScotianShelf",
+                            raster.path = "C:/bio.data/bio.lobster/data/tagging/depthraster2.tif"){
   drv <- DBI::dbDriver("Oracle")
   gstring = ""
   x = get.capturedata(region)
