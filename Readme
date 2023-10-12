@@ -1,11 +1,17 @@
 Install with:
-
 devtools::install_github("LobsterScience/LobTag")
 
 Dependencies:
 dplyr
 
+enter_data_app() is the main function, activates the GUI to run functions in the app.
 
+Before using emailing functionality of the package, you must first run setup_gmailr() to authenticate use of the app with your Google account. You should only have to do this once as the app caches the authentication token in C:\Users\USERNAME\AppData\Local\gargle\gargle\Cache
+
+
+
+
+The above should be enough to run the app, but if not, check the following:
 
 Must change r temp folder to somthing thAT IS NOT RECOGINIZED BY internet explorer as a temp folder.
 

@@ -4,7 +4,10 @@
 \alias{latest_pdf_file}
 \title{latest_pdf_file}
 \usage{
-latest_pdf_file()
+latest_pdf_file(
+  r_drive_email_dir =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/"
+)
 }
 \description{
 returns next pdf email file

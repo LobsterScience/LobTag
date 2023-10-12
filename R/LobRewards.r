@@ -53,10 +53,10 @@ process_returns_for_web = function(){
 
 #' @title  rewards.loop.function
 #' @description  function that will generate all the rewards emails and put them in a folder
-#' @import rmarkdown tinytex
+#' @import rmarkdown
 #' @export
 rewards.loop.function = function(tag.markdown.location = "C:/bio/LobTag/knit_rewards.Rmd", 
-                                 working.emails.location = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Email Attachments/"){
+                                 working.emails.location = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/"){
   perlist = generate.reward.data()
 
   markdownfilepath = tag.markdown.location
@@ -74,7 +74,7 @@ rewards.loop.function = function(tag.markdown.location = "C:/bio/LobTag/knit_rew
     pdf_file_name = paste(email_path, perlist[[k]]$name, ".pdf", sep = "")
     
     #render function needs TinyTex installed to run properly. Check if installed and install if not
-    if(tinytex::is_tinytex() %in% FALSE){tinytex::install_tinytex()}
+    if(tinytex::is_tinytex() %in% FALSE){tinytex::install_tinytex(force = TRUE)}
     
     rmarkdown::render(input = markdownfilepath,
                       output_format = 'pdf_document',

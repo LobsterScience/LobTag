@@ -13,14 +13,12 @@ setup_and_send <- function(){
 #' @export
 setup_gmailr <- function(){
   jsondir2 <- "C:/bio.data/bio.lobster/data/tagging/lobtags_credentials.json"
-  
+  # suppress/automate interactive caching options for gargle functions (can't access these when running through html):
+  # options(gargle_verbosity = "silent") ## other options are info and debug 
+  # options(gargle_oauth_cache = TRUE)
+  # do setup
   gm_auth_configure(path = jsondir2)
   gm_auth(email = "lobtags@gmail.com") # needs to run to initialize and validate local app
-  
-  #lets try configuring sooner...
-  #email as an arguement or no email?
-  #gm_auth_configure(path = jsondir2)
-  #gm_auth() # I believe this only needs be run once at setup
   
   return(TRUE)
 }
@@ -28,14 +26,13 @@ setup_gmailr <- function(){
 #' @title  latest_pdf_file
 #' @description  returns next pdf email file
 #' @export
-latest_pdf_file <- function(){
-  r_drive_email_dir <- "C:/bio/LobTag/temp_files/emails_attachments"
+latest_pdf_file <- function(r_drive_email_dir ="R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/"){
   my_pdfs <- paste(r_drive_email_dir, sep = "")
   file_list <- list.files(path=my_pdfs, pattern = "*.pdf")
   if(length(file_list) == 0){
     out = FALSE
   } else {
-    out <- paste0(my_pdfs,"/",file_list[1])
+    out <- paste0(my_pdfs,file_list[1])
   }
   
   return(out)
@@ -44,7 +41,8 @@ latest_pdf_file <- function(){
 #' @title  send_single_email
 #' @description  uses latest pdf, looks up email address associated with fisher and send attachment to them.
 #' @export
-send_single_email <- function(){
+send_single_email <- function(working_email_dir = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/",
+                              r_drive_sent_email_dir = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Sent Documents/"){
 #if the pdf looks good, we will send 1 single email to the corresponding address
 #if it's not good, then we move the file to a different directory, but do not delete.
 #this function works well, perhaps have fishername as argument in case user selects which pdf?
@@ -53,9 +51,6 @@ send_single_email <- function(){
   
   next_fisher_attachment <- latest_pdf_file()
   p2 <- tools::file_path_sans_ext(next_fisher_attachment)
-  
-  r_drive_sent_email_dir <- "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Sent Documents/"
-  working_email_dir <- "C:/bio/LobTag/temp_files/emails_attachments/"
   
   x <- nchar(working_email_dir)
   
@@ -129,11 +124,13 @@ Dartmouth, NS B2Y 4A2"
 #' @title  do_not_send_email
 #' @description moves pdf for further review, indicates human action required
 #' @export
-do_not_send_email <- function(){
-  working_email_dir <- "C:/bio/LobTag/temp_files/emails_attachments/"
-  r_drive_not_sent_email_dir <- "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Not Sent Documents/"
+do_not_send_email <- function(working_email_dir = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/",
+                              r_drive_not_sent_email_dir = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Not Sent Documents/"){
   
   not_sent_emails <- paste(working_email_dir, "not_sent/", sep = "")
+  if(!(dir.exists(not_sent_emails))){
+    dir.create(not_sent_emails, recursive = T)
+  }
   
   next_fisher_attachment <- latest_pdf_file()
   x <- nchar(working_email_dir)
@@ -167,7 +164,7 @@ open_pdf_file <- function(){
 #' @title  prep_email_send
 #' @description  preps and returns info about the email that's about to be sent.
 #' @export
-prep_email_send <- function(){
+prep_email_send <- function(r_drive_email_dir = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/"){
   #we will collect all the info here and then we'll pass it along to the send single email function to keep things streamlined
   #falls apart if there are no files there.
   next_fisher_attachment <- latest_pdf_file()
@@ -178,7 +175,6 @@ prep_email_send <- function(){
   }
   
   p2 <- tools::file_path_sans_ext(next_fisher_attachment)
-  r_drive_email_dir <- "C:/bio/LobTag/temp_files/emails_attachments/"
   x <- nchar(r_drive_email_dir)
   
   #this is the name we will search for

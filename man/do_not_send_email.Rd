@@ -4,7 +4,12 @@
 \alias{do_not_send_email}
 \title{do_not_send_email}
 \usage{
-do_not_send_email()
+do_not_send_email(
+  working_email_dir =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/",
+  r_drive_not_sent_email_dir =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Not Sent Documents/"
+)
 }
 \description{
 moves pdf for further review, indicates human action required

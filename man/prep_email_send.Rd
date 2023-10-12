@@ -4,7 +4,10 @@
 \alias{prep_email_send}
 \title{prep_email_send}
 \usage{
-prep_email_send()
+prep_email_send(
+  r_drive_email_dir =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/"
+)
 }
 \description{
 preps and returns info about the email that's about to be sent.

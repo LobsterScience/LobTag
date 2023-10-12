@@ -4,7 +4,12 @@
 \alias{send_single_email}
 \title{send_single_email}
 \usage{
-send_single_email()
+send_single_email(
+  working_email_dir =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/",
+  r_drive_sent_email_dir =
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Taggging Files/Sent Documents/"
+)
 }
 \description{
 uses latest pdf, looks up email address associated with fisher and send attachment to them.

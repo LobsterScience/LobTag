@@ -7,7 +7,7 @@
 rewards.loop.function(
   tag.markdown.location = "C:/bio/LobTag/knit_rewards.Rmd",
   working.emails.location =
-    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Email Attachments/"
+    "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/LobTag_outputs/Temp Files/Email Attachments/"
 )
 }
 \description{
