@@ -78,9 +78,9 @@ send_single_email <- function(working_email_dir = "R:/Science/Population Ecology
   body_header = paste(fisher_name, ",\n\n", sep = "")
   #body_main = "Thanks for your participation in the lobster tagging program.\nPlease see attached report for movement information about the tagged lobster(s) you reported."
   body_main = "Thanks for your participation in the lobster tagging program. Please see attached tag recapture report for information on the tag(s) that you reported to us.
-  
-Our apologies that these tag reports have taken so long to be distributed. We have been developing a system for data storage and mapping. Future tag reports should be done in a more timely manner at the close of your fishing season.
-  
+
+Undererstanding how fast lobsters grow in the wild is difficult but tagged lobster measurements are very helpful in determining this. For future tag recaptures, if you are able to share a picture of the lobster with the measuring guage laid on its back, we can use this to determine lobster growth.
+
 Much appreciated.
   
 DFO Lobster Science Team
