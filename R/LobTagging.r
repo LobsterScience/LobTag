@@ -49,7 +49,7 @@ shortestpaths.SC = function(neighborhood = 16, type = "least.cost", redo = F, re
     
     count = 1
     previd = ""
-    if(nrow(x) == 0)message("No new paths to create!")
+    if(nrow(x) == 0)base::message("No new paths to create!")
     else{
       #i = 3
       for(i in 1:nrow(x)){
