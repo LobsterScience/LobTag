@@ -822,8 +822,15 @@ ret_ent <- function(ddata){
   out = paste(out, "\n", sep = "")
   
   ROracle::dbCommit(conn)
+  
+  ### save a backup of updated LBT_CAPTURE on shared drive
+  rec <- ROracle::dbSendQuery(conn, paste("select * from ", "LOBSTER.LBT_CAPTURE", sep=""))
+  rec <- ROracle::fetch(rec)
+  write.csv(rec, file = "R:/Science/Population Ecology Division/Shared/!PED_Unit17_Lobster/Lobster Unit/Projects and Programs/Tagging/Master_data/LBT_CAPTURE.csv", row.names = F)
+  
   ROracle::dbDisconnect(conn)
   return(out)
+  
 }
 
 #' @title THE MAIN GUI FUNCTION!
