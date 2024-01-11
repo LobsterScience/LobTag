@@ -1,5 +1,5 @@
 #' @title captain_maps
-#' @description creates maps for individual captains who participated in tag releases showing their release locations and locations of all tags recaptured from those relesaes.
+#' @description creates maps for individual captains who participated in tag releases showing their release locations and locations of all tags recaptured from those releases.
 #' @description Outputs both kml and pdf maps.
 #' @param releases.data.path Get release data from specified path (gets recaptures from Oracle).
 #' @param output.directory Output to selected output directory
