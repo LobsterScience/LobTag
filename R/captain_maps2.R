@@ -5,7 +5,7 @@
 #' @author Geraint Element
 #' @export
 
-captain_maps <- function(output.directory = NULL){
+captain_maps2 <- function(output.directory = NULL){
   
 
   ##### captain maps
