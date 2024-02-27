@@ -6,13 +6,10 @@
 \usage{
 tagging_mapping_prep()
 }
-\arguments{
-\item{releases.data.path}{Get release data from specified path (gets recaptures from Oracle).}
-}
 \description{
-preps tagging data for mapping analysis (sf, raster, satellite basemaps, etc)
+prepares all tagging data and produces useful variables, including NS basemap, for mapping tagging data
 
-Outputs various sf objects and basemaps to begin mapping.
+Outputs a list of mapping variables
 }
 \author{
 Geraint Element
