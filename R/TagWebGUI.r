@@ -61,7 +61,7 @@ upload_from_file3 <- function(myfile){
   
   #all of the data should be in each upload
   #bdata and sdata can be mined if format is correct.
-  bdata_keep = c("Tag Num","Tag Color","Carapace Length","Sex","Shell","Claw","V-Notch")
+  bdata_keep = c("Tag Prefix","Tag Num","Tag Color","Carapace Length","Sex","Shell","Claw","V-Notch")
   
   #other error checks we could do?
   
@@ -77,7 +77,7 @@ upload_from_file3 <- function(myfile){
   
   
   #create subset to check data integrity, also check for duplicate tags being entered on same sheet.
-  repeat_tags = my_new_Data$`Tag Num`[duplicated(my_new_Data$`Tag Num`)==TRUE]
+  repeat_tags = my_new_Data$`Tag Num`[duplicated(my_new_Data$`Tag Num`)==TRUE & duplicated(my_new_Data$`Tag Prefix`)==TRUE]
   sex_problems <- subset(my_new_Data, !(Sex %in% sex_values))$'Tag Num'
   shell_problems <- subset(my_new_Data, !(Shell %in% shell_values))$'Tag Num'
   claw_problems <- subset(my_new_Data, !(Claw %in% claw_values))$'Tag Num'
@@ -489,7 +489,7 @@ for(i in 1:nrow(dd)){
   if(i > 0){
     if(!is.na(dd$`Tag Num`[i])){
       biodb = paste("LOBSTER",".","LBT_BIO", sep="")
-      sql = paste("SELECT TAG_ID FROM ", biodb, " where TAG_ID = '", dd$`Tag Num`[i],"'", sep = "")
+      sql = paste("SELECT TAG_ID FROM ", biodb, " where TAG_ID = '", dd$`Tag Num`[i],"'", " and TAG_PREFIX = '", dd$`Tag Prefix`[i],"'", sep = "")
       
       result <- ROracle::dbSendQuery(con, sql) 
       result <- ROracle::fetch(result)
